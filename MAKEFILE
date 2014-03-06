@@ -1,0 +1,47 @@
+tst_rast: tst_rast.o raster.o rast_asm.o
+	cc68x -g tst_rast.o raster.o rast_asm.o -o tst_rast
+
+tst_mod: tst_mod.o model.o mod_asm.o
+	cc68x -g tst_mod.o model.o mod_asm.o -o tst_mod
+	
+tst_rend: tst_rend.o renderer.o raster.o model.o mod_asm.o
+	cc68x -g tst_rend.o renderer.o raster.o model.o mod_asm.o -o tst_rend
+
+tst_rend.o: tst_rend.c renderer.h model.h
+	cc68x -g -c tst_rend.c
+
+tst_mod.o: tst_mod.c model.h
+	cc68x -g -c tst_mod.c
+
+model.o: model.c model.h
+	cc68x -g -c model.c
+
+mod_asm.o: mod_asm.s
+	gen -D -L2 mod_asm.s
+
+tst_rast.o: tst_rast.c raster.h
+	cc68x -g -c tst_rast.c
+
+raster.o: raster.c raster.h
+	cc68x -g -c raster.c
+
+rast_asm.o: rast_asm.s
+	gen -D -L2 rast_asm.s
+	
+renderer.o: renderer.c renderer.h
+	cc68x -g -c renderer.c
+
+rast_all:
+	make clean
+	make tst_rast
+
+mod_all:
+	make clean
+	make tst_mod
+	
+rend_all:
+	make clean
+	make tst_rend
+	
+clean:
+	$(RM) -f tst_rast tst_mod *.o
