@@ -32,7 +32,7 @@ int main( )
 {
 	UINT8*  fbBase8	 = Physbase( );
 	UINT16* fbBase16 = Physbase( );
-	UINT32* fbBase32 = Physbase( );
+	ULONG32* fbBase32 = Physbase( );
 	int x1, x2, y;
 	float fX;
 	int bDraw = 1;

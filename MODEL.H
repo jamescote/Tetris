@@ -2,22 +2,14 @@
 #define _MODEL_H
 
 #include "types.h"
-
-/* Defines */
-#define BOARD_HEIGHT 20
-#define BOARD_WIDTH	10
-#define X_POS 0
-#define Y_POS 1
-#define T_HEIGHT 4
-#define D_RIGHT	0
-#define D_LEFT 1
+#include "gm_cnsts.h"
 
 /* Tetrimino Piece Structure */
-struct Tetrimino
+typedef struct
 {
 	UINT8 bPos[ 2 ];
 	UINT16 iMap[ T_HEIGHT ];
-};
+} Tetrimino;
 
 /* Game Board Structure */
 /* Board Layout:
@@ -26,30 +18,37 @@ struct Tetrimino
 				|
 		10______0
  */
-struct Game_Board
+typedef struct
 {
 	UINT16 BoardMap[ BOARD_HEIGHT ];
 	UINT16 iScore, iLns_Clrd, iLvl;
-	UINT8 tetrisCombo, chainCount;
-	UINT16 iGrvty;
-};
+	UINT8 tetrisCombo, chainCount, nxtPiece, state;
+	UINT8 iGrvty;
+} Game_Board;
 
-struct Model
+typedef struct
 {
-	struct Tetrimino cCurrPiece;
-	struct Game_Board cMainBoard;
-};
+	Tetrimino cCurrPiece;
+	Game_Board cMainBoard;
+} Game_Model;
 
 /* Function Declarations */
-void move_Left( struct Tetrimino* m_PieceToMove );
-void move_Right( struct Tetrimino* m_PieceToMove );
-void move_Down( struct Tetrimino* m_PieceToMove,
-				 struct Game_Board* m_Board );
-void Rotate( struct Tetrimino* m_PieceToRotate,
-			  struct Game_Board* m_Board, UINT8 cDirection );
-void Game_Over( struct Game_Board* m_Board, 
-				struct Tetrimino* m_cLockingPiece );
-UINT8 clear_Lines( struct Game_Board* m_Board );
+void reset_Game( Game_Model* m_MainModel, UINT8 cFirstPiece, UINT8 cNxtPiece );
+void move_Left( Tetrimino* m_PieceToMove );
+void move_Right( Tetrimino* m_PieceToMove );
+void move_Down( Tetrimino* m_PieceToMove,
+				Game_Board* m_Board );
+void Rotate( Tetrimino* m_PieceToRotate,
+			 Game_Board* m_Board, UINT8 cDirection );
+void Game_Over(Game_Board* m_Board, 
+				Tetrimino* m_cLockingPiece );
+UINT8 clear_Lines(Game_Board* m_Board );
+void spawnPiece( Tetrimino* m_cCurrPiece, UINT8 iPiece );
+void copyTetrimino( Tetrimino* m_Target, const Tetrimino* m_Source );
+void copyGameBoard( Game_Board* m_Target, const Game_Board* m_Source );
+
+void tetToString( char* cBuffer, const Tetrimino* m_Tetrimino );
+void gbToString( char* cBuffer, const Game_Board* m_Board );
 
 
 #endif

@@ -11,18 +11,20 @@
 #include "font.c"
 #include "gm_cnsts.h"
 
-/* Character Map */
-/* TODO: Implement */
+/* TODO: REMOVE AFTER TESTING */
+#include <stdio.h>
 
 /* Local Function Declaration */
-void render_line( UINT16* fbBase16, 
+void render_Line( UINT16* fbBase16, 
 				  UINT16 iMap, int iYPxlPos );
-void render_board_line( UINT16* fbBase16, 
+void rend_Board_Line( UINT16* fbBase16, 
 						UINT16 iNewMap, 
 						UINT16 iOldMap, 
 						UINT16 iYPxlPos );
+bool redrawTetrimino( const Tetrimino* m_CurrTetrimino );
+void clear_Tetrimino( UINT16* fbBase16 );
 				  
-/* Private Variables */
+/* Private Variables 
 struct sRendState
 {
 	UINT16 BoardMap[ BOARD_HEIGHT ];
@@ -31,45 +33,106 @@ struct sRendState
 	UINT8 iNextPce;
 	UINT16 iCurrScore;
 	UINT16 iLnsCleared;
-} sMainState = { {0x0}, {TETRI_START_POS_X,TETRI_START_POS_Y}, 0, 0, 0, 0 };
+} sMainState = { {0x0}, {0,0}, 0, 0, 0, 0 };*/
+struct sRendState
+{
+	Tetrimino m_TetriState;
+	Game_Board m_BoardState;
+	bool bBorderDrawn;
+} sMainState = 
+	{ 
+		{{0}, {0}},
+		{{0},0,0,0,0,0,0,0,0},
+		false
+	};
 
 /* Function Implementation */
 
 /*
 	Renders a Tetrimino in Board Space.
 */
-void render_tetrimino( UINT16* fbBase16, 
-					   const struct Tetrimino* m_TetriModel )
+void render_Tetrimino( UINT16* fbBase16, 
+					   const Tetrimino* m_TetriModel )
 {	
 	int iYPos = m_TetriModel->bPos[ Y_POS ];
-	UINT16 iYPxlPos, iXPxlPos;
 	UINT8 i = ( iYPos < 0 ? 0 - iYPos : 0 );
 	
-	if( iYPos != sMainState.bTPos[ Y_POS ] || 
-		m_TetriModel->bPos[ X_POS ] != sMainState.bTPos[ X_POS ] )
+	if( redrawTetrimino( m_TetriModel ) )
 	{
-		iYPxlPos = BOARD_BOTTOM_LINE_Y - (sMainState.bTPos[ Y_POS ] << MINO_SHIFT_SIZE);
-		iXPxlPos = BOARD_DRAW_END_X - ((sMainState.bTPos[ X_POS ] + 1) << MINO_SHIFT_SIZE);
-		clear_region( fbBase16, 
-					  iXPxlPos,
-					  iXPxlPos + (MINO_SIZE << TETRI_MAP_BASE),
-					  iYPxlPos,
-					  iYPxlPos + (MINO_SIZE << TETRI_MAP_BASE) );
-	
-		for( i; i < T_HEIGHT; i++ )
-		{	
-			render_line( fbBase16, m_TetriModel->iMap[ i ], ((BOARD_HEIGHT - iYPos) + i) << MINO_SHIFT_SIZE );
-		}
+		clear_Tetrimino( fbBase16 );
 		
-		for( i = 0; i < 2; i++ )
-			sMainState.bTPos[ i ] = m_TetriModel->bPos[ i ];
+		for( i; i < T_HEIGHT; i++ )
+			render_Line( fbBase16, m_TetriModel->iMap[ i ], (((BOARD_HEIGHT - 1) - iYPos) + i) << MINO_SHIFT_SIZE );
+		
+		copyTetrimino( &(sMainState.m_TetriState), m_TetriModel );
+	}
+}
+
+/*
+	Compares a passed in tetrimino object with the current render state to 
+	determine if a tetrimino needs to be redrawn.
+*/
+bool redrawTetrimino( const Tetrimino* m_CurrTetrimino )
+{
+	bool bReturnValue;
+	UINT8 i;
+
+	bReturnValue = (sMainState.m_TetriState.bPos[ X_POS ] != m_CurrTetrimino->bPos[ X_POS ]);
+	bReturnValue = bReturnValue || (sMainState.m_TetriState.bPos[ Y_POS ] != m_CurrTetrimino->bPos[ Y_POS ]);
+	
+	for( i = 0; i < T_HEIGHT; i++ )
+		bReturnValue = bReturnValue || (sMainState.m_TetriState.iMap[ i ] != m_CurrTetrimino->iMap[ i ]);
+		
+	return bReturnValue;
+}
+
+/* 
+	Function to only clear the Tetrimino Object. 
+*/
+void clear_Tetrimino( UINT16* fbBase16 )
+{
+	UINT16 iYPxlPos = BOARD_BOTTOM_LINE_Y - ((sMainState.m_TetriState.bPos[ Y_POS ] + 1) << MINO_SHIFT_SIZE);
+	UINT16 iXPxlPos, iXPxlEndPos;
+	UINT8 i, xPos = sMainState.m_TetriState.bPos[ X_POS ];
+	UINT8 iEndBit;
+	UINT8 iStartBit;
+	UINT16 iMapCopy;
+	
+	for( i = 0; i < T_HEIGHT; i++ )
+	{
+		if( sMainState.m_TetriState.iMap[ i ] != 0 )
+		{
+			iMapCopy = sMainState.m_TetriState.iMap[ i ];
+			iEndBit = 0;
+			iStartBit = 1;
+			
+			while( iMapCopy != 0 )
+			{
+				iMapCopy >>= 1;
+				
+				if( !(iMapCopy & 1) )
+					iEndBit++;
+				
+				iStartBit++;
+			}
+			
+			iXPxlPos = BOARD_DRAW_END_X - ( iStartBit << MINO_SHIFT_SIZE );
+			iXPxlEndPos = BOARD_DRAW_END_X - ( iEndBit << MINO_SHIFT_SIZE );
+			
+			clear_region( fbBase16,
+						  iXPxlPos,
+						  iXPxlEndPos,
+						  iYPxlPos,
+						  iYPxlPos + MINO_SIZE );
+		}
+		iYPxlPos += MINO_SIZE;
 	}
 }
 
 /*
 	Taking in a Map, renders a line on the game board.
 */
-void render_line( UINT16* fbBase16, 
+void render_Line( UINT16* fbBase16, 
 				  UINT16 iMap, 
 				  int iYPxlPos )
 				  
@@ -96,8 +159,8 @@ void render_line( UINT16* fbBase16,
 	Renders the Game Board -- Anything that needs to be displayed to the
 	player in terms of the state of the board.
 */
-void render_board( UINT16* fbBase16, 
-				   const struct Game_Board* m_Board )
+void rend_Board( UINT16* fbBase16, 
+				   const Game_Board* m_Board )
 {
 	UINT16 iYPxlPos = BOARD_BOTTOM_LINE_Y - MINO_SIZE;
 	UINT16 iSideBottomBorders = BOARD_BOTTOM_LINE_Y - 1;
@@ -108,26 +171,26 @@ void render_board( UINT16* fbBase16,
 	{
 		plot_v_line( (UINT8*)fbBase16, BOARD_DRAW_START_X, 0, iSideBottomBorders );
 		plot_v_line( (UINT8*)fbBase16, BOARD_DRAW_END_X, 0, iSideBottomBorders );
-		plot_h_line( (UINT32*)fbBase16, 
+		plot_h_line( (ULONG32*)fbBase16, 
 					 BOARD_DRAW_START_X, 
 					 BOARD_DRAW_END_X, 
 					 BOARD_BOTTOM_LINE_Y );
 					 
-		sMainState.bBorderDrawn = 1;
+		sMainState.bBorderDrawn = true;
 	}
 	
 	/* Fill Board */
 	i = 0;
 	while( i < BOARD_HEIGHT && 
-		   ( m_Board->BoardMap[ i ] != 0 || sMainState.BoardMap[ i ] != 0 ) )
+		   ( m_Board->BoardMap[ i ] != 0 || sMainState.m_BoardState.BoardMap[ i ] != 0 ) )
 	{
-		if( m_Board->BoardMap[ i ] != sMainState.BoardMap[ i ] )
+		if( m_Board->BoardMap[ i ] != sMainState.m_BoardState.BoardMap[ i ] )
 		{
-			render_board_line( fbBase16, 
+			rend_Board_Line( fbBase16, 
 							   m_Board->BoardMap[ i ], 
-							   sMainState.BoardMap[ i ], 
+							   sMainState.m_BoardState.BoardMap[ i ], 
 							   iYPxlPos );
-			sMainState.BoardMap[ i ] = m_Board->BoardMap[ i ];
+			sMainState.m_BoardState.BoardMap[ i ] = m_Board->BoardMap[ i ];
 		}
 		i++;
 		iYPxlPos -= MINO_SIZE;
@@ -142,11 +205,13 @@ void render_board( UINT16* fbBase16,
 	to the original line that was there.  clears or adds a space as needed and
 	leaves the space if unchanged.
 */
-void render_board_line( UINT16* fbBase16, UINT16 iNewMap, UINT16 iOldMap, UINT16 iYPxlPos )
+void rend_Board_Line( UINT16* fbBase16, UINT16 iNewMap, UINT16 iOldMap, UINT16 iYPxlPos )
 {
 	UINT16 iXPxlPos = BOARD_DRAW_END_X - MINO_SIZE,
 		   iYPxlEndPos = iYPxlPos + (MINO_SIZE - 1);
 	UINT8 j, iOldBit, iNewBit;
+	
+	printf( "REND_BOARD" );
 	
 	/* Check for Clearing Spaces */
 	for( j = 0; j < BOARD_WIDTH; j++ )
@@ -176,18 +241,18 @@ void render_board_line( UINT16* fbBase16, UINT16 iNewMap, UINT16 iOldMap, UINT16
 /*
 	Take in a Model object and render both the Tetrimino and the Game Board.
 */
-void render_all( UINT16* fbBase16,  
-				 const struct Model* m_GameModel )
+void render_All( UINT16* fbBase16,  
+				 const Game_Model* m_GameModel )
 {
-	render_tetrimino( fbBase16, (&m_GameModel->cCurrPiece) );
-	render_board( fbBase16, (&m_GameModel->cMainBoard) );
+	render_Tetrimino( fbBase16, &(m_GameModel->cCurrPiece) );
+	rend_Board( fbBase16, &(m_GameModel->cMainBoard) );
 }
 
 /*
 	Take in a String and Output each character as a bitmap from the fonts
 	object.
 */
-void render_string( UINT8* fbBase8, const char* sText, UINT16 iXPxlPos, UINT16 iYPxlPos )
+void render_String( UINT8* fbBase8, const char* sText, UINT16 iXPxlPos, UINT16 iYPxlPos )
 {
 	UINT16 iCurrX = iXPxlPos, iCurrY = iYPxlPos;
 	UINT8 iStrIndex = 0;
@@ -207,7 +272,7 @@ void render_string( UINT8* fbBase8, const char* sText, UINT16 iXPxlPos, UINT16 i
 		else if( sText[ iStrIndex ] < MAX_CHAR )
 			draw_bitmap_8( fbBase8, iCurrX, iCurrY, charMap[ sText[ iStrIndex ] ], BMP_HEIGHT );
 		else
-			draw_bitmap_8( fbBase8, iCurrX, iCurrY, charMap[ ' ' ], BMP_HEIGHT );
+			draw_bitmap_8( fbBase8, iCurrX, iCurrY, charMap[ 0 ], BMP_HEIGHT );
 		
 		if( bNewLine )
 		{

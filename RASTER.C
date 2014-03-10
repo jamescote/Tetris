@@ -89,25 +89,25 @@ void draw_square( UINT16* fbBase,
 /*
 	Purpose: Draw a horizontal line to the frame buffer.
 */
-void plot_h_line( UINT32* fbBase,
+void plot_h_line( ULONG32* fbBase,
 		  int x1, int x2, int y )
 {
 	int xStart 			= x1 > x2 ? x2 : x1;
 	int xFinish 		= xStart == x1 ? x2 : x1;
 	UINT8 bLongMask		= SIZE_LONG - 1;
-	UINT32* fbStart		= fbBase + (y * LONG_SCREEN_WIDTH);
-	UINT32* fbFin 		= fbStart + (xFinish >> 5);
+	ULONG32* fbStart		= fbBase + (y * LONG_SCREEN_WIDTH);
+	ULONG32* fbFin 		= fbStart + (xFinish >> 5);
 	fbStart 			+= (xStart >> 5);
 	
 	if( fbStart == fbFin )
-		*fbStart |= ((UINT32)-1 >> (xStart & bLongMask) & 
-					(UINT32)-1 << (bLongMask - (xFinish & bLongMask)));
+		*fbStart |= ((ULONG32)-1 >> (xStart & bLongMask) & 
+					(ULONG32)-1 << (bLongMask - (xFinish & bLongMask)));
 	else
 	{
-		*(fbStart++) |= (UINT32)-1 >> (xStart & bLongMask);
+		*(fbStart++) |= (ULONG32)-1 >> (xStart & bLongMask);
 		while( fbStart != fbFin )
-			*(fbStart++) = (UINT32)-1;
-		*fbStart |= (UINT32)-1 << (bLongMask - (xFinish & bLongMask));
+			*(fbStart++) = (ULONG32)-1;
+		*fbStart |= (ULONG32)-1 << (bLongMask - (xFinish & bLongMask));
 	}
 	
 }
@@ -166,9 +166,9 @@ void draw_bitmap_8( UINT8* fbBase,
 		while( pBitMap < pEndOfBitmap )
 		{
 			if( iDrawSides <= 0 )
-				*fbBase |= (*pBitMap >> iOffSet);
+				*fbBase = (*pBitMap >> iOffSet);
 			if( iDrawSides >= 0 )
-				*(fbBase + 1) |= (*pBitMap << ((SIZE_BYTE - 1) - iOffSet));
+				*(fbBase + 1) = (*pBitMap << ((SIZE_BYTE - 1) - iOffSet));
 			pBitMap++;
 			fbBase += BYTE_SCREEN_WIDTH;
 		}

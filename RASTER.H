@@ -8,7 +8,7 @@ void clear_region( UINT16* fbBase,
 		   int y1, int y2 );
 void draw_square( UINT16* fbBase,
 		  int x, int y );
-void plot_h_line( UINT32* fbBase,
+void plot_h_line( ULONG32* fbBase,
 		  int x1, int x2, int y );
 void plot_v_line( UINT8* fbBase,
 		  int x, int y1, int y2 );
