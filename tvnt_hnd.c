@@ -16,10 +16,12 @@ void handleAsync( const long lTrigger, Game_Model* m_MainGameModel )
 	switch( cTrigger )
 	{
 		case MOVE_LEFT:
-			move_Left( &(m_MainGameModel->cCurrPiece) );
+			move_Left( &(m_MainGameModel->cCurrPiece),
+					   &(m_MainGameModel->cMainBoard) );
 			break;
 		case MOVE_RIGHT:
-			move_Right( &(m_MainGameModel->cCurrPiece) );
+			move_Right( &(m_MainGameModel->cCurrPiece),
+						&(m_MainGameModel->cMainBoard) );
 			break;
 		case MOVE_DOWN:
 			move_Down( &(m_MainGameModel->cCurrPiece), 

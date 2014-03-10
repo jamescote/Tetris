@@ -28,6 +28,10 @@
 #define D_LEFT 1
 #define GRAVITY_DELTA 5
 
+/* Renderer Defines */
+#define LINE_CLEAR 1
+#define LINE_DRAW 0
+
 /* Game Board States */
 #define BOARD_RESET_STATE 0		
 #define	BOARD_RUN_STATE 1		

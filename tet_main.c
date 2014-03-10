@@ -99,7 +99,7 @@ ULONG32 get_time( )
 
 UINT8 get_Random_Tetrimino( )
 {
-	return (rand( ) & (MAX_TETRIMINOS - 1));
+	return (rand( ) % MAX_TETRIMINOS);
 }
 
 /*

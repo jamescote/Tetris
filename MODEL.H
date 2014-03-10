@@ -34,8 +34,10 @@ typedef struct
 
 /* Function Declarations */
 void reset_Game( Game_Model* m_MainModel, UINT8 cFirstPiece, UINT8 cNxtPiece );
-void move_Left( Tetrimino* m_PieceToMove );
-void move_Right( Tetrimino* m_PieceToMove );
+void move_Left( Tetrimino* m_PieceToMove,
+				const Game_Board* m_BoardRef );
+void move_Right( Tetrimino* m_PieceToMove,
+				 const Game_Board* m_BoardRef );
 void move_Down( Tetrimino* m_PieceToMove,
 				Game_Board* m_Board );
 void Rotate( Tetrimino* m_PieceToRotate,

@@ -101,7 +101,8 @@ void gbToString( char* cBuffer, const Game_Board* m_Board )
 /*
 	Move Left by 1
 */
-void move_Left( Tetrimino* m_PieceToMove )
+void move_Left( Tetrimino* m_PieceToMove,
+				const Game_Board* m_BoardRef )
  {
 	UINT8 i;
 	UINT16 iSquishedMap = squishMap( m_PieceToMove );
@@ -110,8 +111,12 @@ void move_Left( Tetrimino* m_PieceToMove )
 	{
 		for( i = 0; i < T_HEIGHT; i++ )
 			m_PieceToMove->iMap[ i ] <<= 1;
-		
-		m_PieceToMove->bPos[ X_POS ]++;
+			
+		if( pieceCollided( m_PieceToMove, m_BoardRef ) )
+			for( i = 0; i < T_HEIGHT; i++ )
+				m_PieceToMove->iMap[ i ] >>= 1;
+		else
+			m_PieceToMove->bPos[ X_POS ]++;
 	}
 		
  }
@@ -119,7 +124,7 @@ void move_Left( Tetrimino* m_PieceToMove )
  /*
 	Move Right by 1
 */
- void move_Right( Tetrimino* m_PieceToMove )
+ void move_Right( Tetrimino* m_PieceToMove, const Game_Board* m_BoardRef )
  {
 	UINT8 i;
 	UINT16 iSquishedMap = squishMap( m_PieceToMove );
@@ -129,7 +134,11 @@ void move_Left( Tetrimino* m_PieceToMove )
 		for( i = 0; i < T_HEIGHT; i++ )
 			m_PieceToMove->iMap[ i ] >>= 1;
 	
-		m_PieceToMove->bPos[ X_POS ]--;
+		if( pieceCollided( m_PieceToMove, m_BoardRef ) )
+			for( i = 0; i < T_HEIGHT; i++ )
+				m_PieceToMove->iMap[ i ] <<= 1;
+		else
+			m_PieceToMove->bPos[ X_POS ]--;
 	}
  }
  
@@ -218,7 +227,7 @@ void fixPosition( Tetrimino* m_PieceToFix,
 		
 	while( wSquishedMap > 0x0200 )
 	{
-		move_Right( m_PieceToFix );
+		move_Right( m_PieceToFix, m_Board );
 		wSquishedMap >>= 1;
 	}
 	
@@ -235,7 +244,7 @@ bool pieceCollided( const Tetrimino* m_PieceToCheck,
 {
 	char iOffset = m_PieceToCheck->bPos[ Y_POS ], i = 0;
 	bool bReturnValue = false;
-
+	
 	while( !bReturnValue && (i < T_HEIGHT) )
 	{
 		if( iOffset >= 0 )

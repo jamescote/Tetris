@@ -16,7 +16,7 @@
 
 /* Local Function Declaration */
 void render_Line( UINT16* fbBase16, 
-				  UINT16 iMap, int iYPxlPos );
+				  UINT16 iMap, int iYPxlPos, UINT8 bClearFlag );
 void rend_Board_Line( UINT16* fbBase16, 
 						UINT16 iNewMap, 
 						UINT16 iOldMap, 
@@ -62,7 +62,7 @@ void render_Tetrimino( UINT16* fbBase16,
 		clear_Tetrimino( fbBase16 );
 		
 		for( i; i < T_HEIGHT; i++ )
-			render_Line( fbBase16, m_TetriModel->iMap[ i ], (((BOARD_HEIGHT - 1) - iYPos) + i) << MINO_SHIFT_SIZE );
+			render_Line( fbBase16, m_TetriModel->iMap[ i ], (((BOARD_HEIGHT - 1) - iYPos) + i) << MINO_SHIFT_SIZE, LINE_DRAW );
 		
 		copyTetrimino( &(sMainState.m_TetriState), m_TetriModel );
 	}
@@ -92,38 +92,13 @@ bool redrawTetrimino( const Tetrimino* m_CurrTetrimino )
 void clear_Tetrimino( UINT16* fbBase16 )
 {
 	UINT16 iYPxlPos = BOARD_BOTTOM_LINE_Y - ((sMainState.m_TetriState.bPos[ Y_POS ] + 1) << MINO_SHIFT_SIZE);
-	UINT16 iXPxlPos, iXPxlEndPos;
-	UINT8 i, xPos = sMainState.m_TetriState.bPos[ X_POS ];
-	UINT8 iEndBit;
-	UINT8 iStartBit;
-	UINT16 iMapCopy;
+	UINT8 i;
 	
 	for( i = 0; i < T_HEIGHT; i++ )
 	{
 		if( sMainState.m_TetriState.iMap[ i ] != 0 )
 		{
-			iMapCopy = sMainState.m_TetriState.iMap[ i ];
-			iEndBit = 0;
-			iStartBit = 1;
-			
-			while( iMapCopy != 0 )
-			{
-				iMapCopy >>= 1;
-				
-				if( !(iMapCopy & 1) )
-					iEndBit++;
-				
-				iStartBit++;
-			}
-			
-			iXPxlPos = BOARD_DRAW_END_X - ( iStartBit << MINO_SHIFT_SIZE );
-			iXPxlEndPos = BOARD_DRAW_END_X - ( iEndBit << MINO_SHIFT_SIZE );
-			
-			clear_region( fbBase16,
-						  iXPxlPos,
-						  iXPxlEndPos,
-						  iYPxlPos,
-						  iYPxlPos + MINO_SIZE );
+			render_Line( fbBase16, sMainState.m_TetriState.iMap[ i ], iYPxlPos, LINE_CLEAR );
 		}
 		iYPxlPos += MINO_SIZE;
 	}
@@ -134,7 +109,8 @@ void clear_Tetrimino( UINT16* fbBase16 )
 */
 void render_Line( UINT16* fbBase16, 
 				  UINT16 iMap, 
-				  int iYPxlPos )
+				  int iYPxlPos,
+				  UINT8 bClearFlag )
 				  
 {
 	UINT16 i, iXPxlPos = (BOARD_DRAW_END_X - MINO_SIZE);
@@ -145,9 +121,16 @@ void render_Line( UINT16* fbBase16,
 		{
 			if( iMap & (TETRI_MAP_BASE - 1) != 0 )
 			{
-				draw_square( fbBase16, 
-							 iXPxlPos,
-							 iYPxlPos );
+				if( !bClearFlag ) 
+					draw_square( fbBase16, 
+								 iXPxlPos,
+								 iYPxlPos );
+				else
+					clear_region( fbBase16,
+								  iXPxlPos,
+								  iXPxlPos + MINO_SIZE,
+								  iYPxlPos,
+								  iYPxlPos + MINO_SIZE );
 			}
 			iMap >>= 1;
 			iXPxlPos -= MINO_SIZE;
@@ -210,8 +193,6 @@ void rend_Board_Line( UINT16* fbBase16, UINT16 iNewMap, UINT16 iOldMap, UINT16 i
 	UINT16 iXPxlPos = BOARD_DRAW_END_X - MINO_SIZE,
 		   iYPxlEndPos = iYPxlPos + (MINO_SIZE - 1);
 	UINT8 j, iOldBit, iNewBit;
-	
-	printf( "REND_BOARD" );
 	
 	/* Check for Clearing Spaces */
 	for( j = 0; j < BOARD_WIDTH; j++ )
