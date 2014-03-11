@@ -31,7 +31,8 @@ void reset_Game( Game_Model* m_MainModel, UINT8 cFirstPiece, UINT8 cNxtPiece )
 		m_MainModel->cCurrPiece.iMap[ i ] = iStartingMaps[ cFirstPiece ][ i ];
 	
 	/* Reset Game Board */
-	for( i = 0; i < BOARD_HEIGHT; i++ )
+	m_MainModel->cMainBoard.BoardMap[ 0 ] = FULL_LINE; /* Testing Purposes */
+	for( i = 1; i < BOARD_HEIGHT; i++ )
 		m_MainModel->cMainBoard.BoardMap[ i ] = 0x0;
 	m_MainModel->cMainBoard.iScore 		= 0;
 	m_MainModel->cMainBoard.iLns_Clrd 	= 0;
@@ -213,7 +214,7 @@ void Rotate( Tetrimino* m_PieceToRotate,
 void fixPosition( Tetrimino* m_PieceToFix,
 				  const Game_Board* m_Board )
 {
-	UINT16 wSquishedMap = squishMap( m_PieceToFix );
+	UINT16 wSquishedMap;
 	UINT8 i, j;
 	
 	if( m_PieceToFix->bPos[ X_POS ] > 3 )
@@ -225,7 +226,9 @@ void fixPosition( Tetrimino* m_PieceToFix,
 	else 
 		m_PieceToFix->bPos[ X_POS ] = 3;
 		
-	while( wSquishedMap > 0x0200 )
+	wSquishedMap = squishMap( m_PieceToFix );
+	
+	while( wSquishedMap > LEFT_BOUND )
 	{
 		move_Right( m_PieceToFix, m_Board );
 		wSquishedMap >>= 1;
@@ -293,7 +296,7 @@ void lock_piece( Game_Board* m_Board,
 	UINT8 iPiecePos = m_cLockingPiece->bPos[ Y_POS ];
 	UINT8 i;
 
-	if( iPiecePos >= 0 )
+	if( iPiecePos < BOARD_HEIGHT && iPiecePos >= 0 )
 	{
 		for( i = 0; i < T_HEIGHT; i++ )
 			m_Board->BoardMap[ iPiecePos - i ] |= 
@@ -348,21 +351,28 @@ void Calc_Score( Game_Board* m_Board )
 */
 UINT8 clear_Lines( Game_Board* m_Board )
 {
-	UINT8 iReturnLines = 0, i;
+	UINT8 iReturnLines = 0, i, j;
 	
 	for( i = 0; i < BOARD_HEIGHT; i++ )
 	{
 		if( m_Board->BoardMap[ i ] == 0 )
 			i = BOARD_HEIGHT;
 		else if( m_Board->BoardMap[ i ] == FULL_LINE )
-		{	
-			if( ( iReturnLines > 0 ) && ( i != ( BOARD_HEIGHT - 1 ) ) )
-				m_Board->BoardMap[ i ] = m_Board->BoardMap[ i + 1 ];
-				
 			iReturnLines++;
-		}
 	}
-
+	
+	i = 0;
+	j = 0;
+	while( i < BOARD_HEIGHT )
+	{
+		if( j >= BOARD_HEIGHT )
+			m_Board->BoardMap[ i++ ] = 0x0;
+		else if( m_Board->BoardMap[ j ] == FULL_LINE )
+			j++;
+		else
+			m_Board->BoardMap[ i++ ] = m_Board->BoardMap[ j++ ];
+	}
+	
 	return iReturnLines;
 }
  

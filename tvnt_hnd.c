@@ -63,6 +63,6 @@ void handleSync( UINT16* fbBase16, UINT8* iTimeElapsed, Game_Model* m_MainGameMo
 	tetToString( cBuffer, &(m_MainGameModel->cCurrPiece) );
 	render_String( (UINT8*)fbBase16, cBuffer, 496, 0 );
 	gbToString( cBuffer, &(m_MainGameModel->cMainBoard) );
-	render_String( (UINT8*)fbBase16, cBuffer, 0, 0 );
+	/*render_String( (UINT8*)fbBase16, cBuffer, 0, 0 );*/
 	render_All( fbBase16, m_MainGameModel );
 }

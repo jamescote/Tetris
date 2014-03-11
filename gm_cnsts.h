@@ -31,6 +31,10 @@
 /* Renderer Defines */
 #define LINE_CLEAR 1
 #define LINE_DRAW 0
+#define RIGHT_BORDER_X (BOARD_DRAW_END_X + 1)
+#define LEFT_BORDER_X (BOARD_DRAW_START_X - 1)
+#define BOTTOM_BORDER_Y (BOARD_BOTTOM_LINE_Y + 1)
+
 
 /* Game Board States */
 #define BOARD_RESET_STATE 0		

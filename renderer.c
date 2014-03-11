@@ -146,18 +146,20 @@ void rend_Board( UINT16* fbBase16,
 				   const Game_Board* m_Board )
 {
 	UINT16 iYPxlPos = BOARD_BOTTOM_LINE_Y - MINO_SIZE;
-	UINT16 iSideBottomBorders = BOARD_BOTTOM_LINE_Y - 1;
+	UINT16 iSideBottomBorders;
 	UINT8 i;
+	char debugInfo[ MAX_STR_LENGTH ];
 	
 	/* Draw Borders */
 	if( !sMainState.bBorderDrawn )
 	{
-		plot_v_line( (UINT8*)fbBase16, BOARD_DRAW_START_X, 0, iSideBottomBorders );
-		plot_v_line( (UINT8*)fbBase16, BOARD_DRAW_END_X, 0, iSideBottomBorders );
+		iSideBottomBorders = BOTTOM_BORDER_Y - 1;
+		plot_v_line( (UINT8*)fbBase16, LEFT_BORDER_X, 0, iSideBottomBorders );
+		plot_v_line( (UINT8*)fbBase16, RIGHT_BORDER_X, 0, iSideBottomBorders );
 		plot_h_line( (ULONG32*)fbBase16, 
-					 BOARD_DRAW_START_X, 
-					 BOARD_DRAW_END_X, 
-					 BOARD_BOTTOM_LINE_Y );
+					 LEFT_BORDER_X, 
+					 RIGHT_BORDER_X, 
+					 BOTTOM_BORDER_Y );
 					 
 		sMainState.bBorderDrawn = true;
 	}
@@ -191,7 +193,7 @@ void rend_Board( UINT16* fbBase16,
 void rend_Board_Line( UINT16* fbBase16, UINT16 iNewMap, UINT16 iOldMap, UINT16 iYPxlPos )
 {
 	UINT16 iXPxlPos = BOARD_DRAW_END_X - MINO_SIZE,
-		   iYPxlEndPos = iYPxlPos + (MINO_SIZE - 1);
+		   iYPxlEndPos = iYPxlPos + MINO_SIZE;
 	UINT8 j, iOldBit, iNewBit;
 	
 	/* Check for Clearing Spaces */
@@ -204,7 +206,7 @@ void rend_Board_Line( UINT16* fbBase16, UINT16 iNewMap, UINT16 iOldMap, UINT16 i
 			if( 0 == iNewBit )
 				clear_region( fbBase16, 
 							  iXPxlPos, 
-							  iXPxlPos + (MINO_SIZE - 1), 
+							  iXPxlPos + MINO_SIZE, 
 							  iYPxlPos, 
 							  iYPxlEndPos );
 			else
