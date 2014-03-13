@@ -10,10 +10,11 @@
 
 /* Constants */
 const long* cc_ClockPtr = (long*)0x462;
+UINT8 gBackBuffer[ BACK_BUFFER_SIZE ];
 
 /* Helper Function Declarations */
 bool didClockTick( long* prevTick, UINT8* tickCount );
-ULONG32 get_time( );
+UINT32 get_time( );
 UINT8 parseState( Game_Model* m_MainGameModel );
 UINT8 get_Random_Tetrimino( );
 
@@ -30,29 +31,34 @@ int main( )
 	long prevTick;
 	UINT8 m_cGameState = GAME_START;
 	long old_ssp;
-	UINT16* fbBase16 = Physbase( ); /* TODO: Remove OSBinding */
-	char cBuffer[ MAX_STR_LENGTH ];
+	UINT16* fbBffrPtrs[ 2 ];
+	fbBffrPtrs[ FRONT_BUFFER ] = Physbase( );
+	fbBffrPtrs[ BACK_BUFFER ] = (((UINT16*)(gBackBuffer)+BACK_BUFFER_ALIGNMENT) & ~ 0xFF);
+	UINT8 iCurrBackBffr = BACK_BUFFER;
 	
 	/* Set new Random Seed */
 	srand( get_time( ) );
 	
+	reset_Game( &m_MainGameModel, get_Random_Tetrimino( ), get_Random_Tetrimino( ) );
+	render_All( fbBffrPtrs[ FRONT_BUFFER ], &m_MainGameModel );						   
+	m_cGameState = GAME_RUN;
+	
 	while( m_cGameState != GAME_EXIT )
 	{
-		if( GAME_START == m_cGameState )
-		{
-			reset_Game( &m_MainGameModel, get_Random_Tetrimino( ), get_Random_Tetrimino( ) );
-			render_All( fbBase16, &m_MainGameModel );						   
-			m_cGameState = GAME_RUN;
-		}
-		else if( GAME_PAUSED == m_cGameState )
+		if( GAME_PAUSED == m_cGameState )
 		{
 			if( inputPending( ) && getInput( ) == PAUSE )
 				m_cGameState = GAME_RUN;
 		}
 		else
 		{
-			if( didClockTick( &prevTick, &tickCount ) )
-				handleSync( fbBase16, &tickCount, &m_MainGameModel );
+			if( didClockTick( &prevTick, &(m_MainGameModel.cMainBoard.iTimeElapsed) ) )
+			{
+				handleSync( fbBffrPtrs[ iCurrBackBffr ], &m_MainGameModel );
+				
+				Setscreen( -1, fbBffrPtrs[ iCurrBackBffr ], -1 );
+				iCurrBackBffr = !iCurrBackBffr;
+			}
 			
 			if( inputPending( ) )
 				handleAsync( getInput( ), &m_MainGameModel );
@@ -61,7 +67,8 @@ int main( )
 		}
 	}
 	
-	/*return 0;*/
+	/* Set the frame buffer back to the front buffer. */
+	Setscreen( -1, fbBffrPtrs[ 0 ], -1);
 }
 
 /* 
@@ -70,24 +77,24 @@ int main( )
 */
 bool didClockTick( long* prevTick, UINT8* tickCount )
 {
-	ULONG32 timeNow = get_time( );
-	bool bReturnVal = *prevTick != timeNow;
+	UINT32 timeNow = get_time( );
+	bool bClockTicked = *prevTick != timeNow;
 	
-	if( bReturnVal )
+	if( bClockTicked )
 	{
+		*tickCount += timeNow - *prevTick;
 		*prevTick = timeNow;
-		*tickCount++;
 	}
 		
-	return bReturnVal;
+	return bClockTicked;
 }
 
 /*
 	Helper function that return the current clock ticks.
 */
-ULONG32 get_time( )
+UINT32 get_time( )
 {
-	ULONG32 lReturnTime;
+	UINT32 lReturnTime;
 	long old_ssp = Super( 0 );
 
 	lReturnTime = *cc_ClockPtr;

@@ -16,5 +16,6 @@ void render_All( UINT16* fbBase16,
 void render_String( UINT8* fbBase8, 
 					const char* sText, 
 					UINT16 iXPxlPos, UINT16 iYPxlPos );
+void clear_Screen( UINT16* fbBase16 );
 
 #endif

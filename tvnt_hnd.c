@@ -38,9 +38,6 @@ void handleAsync( const long lTrigger, Game_Model* m_MainGameModel )
 		case PAUSE:
 			m_MainGameModel->cMainBoard.state = BOARD_PAUSE_STATE;
 			break;
-		case TEMP_QUIT: /* Temporary: To be removed with Menu System */
-			m_MainGameModel->cMainBoard.state = BOARD_GAME_OVER_STATE;
-			break;
 		default:
 			break;
 	};
@@ -49,20 +46,18 @@ void handleAsync( const long lTrigger, Game_Model* m_MainGameModel )
 /*
 	Synchronized game logic is executed here.
 */
-void handleSync( UINT16* fbBase16, UINT8* iTimeElapsed, Game_Model* m_MainGameModel )
+void handleSync( UINT16* fbBase16, Game_Model* m_MainGameModel )
 {
 	char cBuffer[ MAX_STR_LENGTH ] = {0x0};
 	
-	if( m_MainGameModel->cMainBoard.iGrvty == *iTimeElapsed )
-	{
+	render_All( fbBase16, m_MainGameModel );
+	
+	if( gravityTriggered( &(m_MainGameModel->cMainBoard) ) )
 		move_Down( &(m_MainGameModel->cCurrPiece),
 				   &(m_MainGameModel->cMainBoard) );
-		*iTimeElapsed = 0;
-	}
 	
-	tetToString( cBuffer, &(m_MainGameModel->cCurrPiece) );
+	/*tetToString( cBuffer, &(m_MainGameModel->cCurrPiece) );
 	render_String( (UINT8*)fbBase16, cBuffer, 496, 0 );
 	gbToString( cBuffer, &(m_MainGameModel->cMainBoard) );
-	/*render_String( (UINT8*)fbBase16, cBuffer, 0, 0 );*/
-	render_All( fbBase16, m_MainGameModel );
+	render_String( (UINT8*)fbBase16, cBuffer, 0, 0 );*/
 }

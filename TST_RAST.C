@@ -26,13 +26,33 @@ const UINT8 tempBitMap[ 16 ] =
 	0x7e,
 	0x00
 };
+const UINT16 tempBitMap16[ 16 ] = 
+{
+	0x0000,
+	0x7ffe,
+	0x7ffe,
+	0x7ffe,
+	0x7ffe,
+	0x7ffe,
+	0x7ffe,
+	0x7e7e,
+	0x7e7e,
+	0x7ffe,
+	0x7ffe,
+	0x7ffe,
+	0x7ffe,
+	0x7ffe,
+	0x7ffe,
+	0x0000
+};
+
 
 /* Main */
 int main( )
 {
 	UINT8*  fbBase8	 = Physbase( );
 	UINT16* fbBase16 = Physbase( );
-	ULONG32* fbBase32 = Physbase( );
+	UINT32* fbBase32 = Physbase( );
 	int x1, x2, y;
 	float fX;
 	int bDraw = 1;
@@ -42,8 +62,8 @@ int main( )
 	plot_v_line( fbBase8, 320, 0, 399 );
 	plot_h_line( fbBase32, 0, 639, 200 );
 	
-	/* Quad Section Test *
-	/* H Triangle Test *
+	/* Quad Section Test */
+	/* H Triangle Test */
 	plot_h_line( fbBase32, 320, 639, 0 );
 	plot_h_line( fbBase32, 320, 639, 199 );
 	fX = 321.0f;
@@ -60,7 +80,7 @@ int main( )
 		fX += 1.6f;
 	}
 	
-	/* V Triangle Test *
+	/* V Triangle Test */
 	plot_v_line( fbBase8, 0, 200, 399 );
 	plot_v_line( fbBase8, 319, 200, 399 );
 	fX = 201.0f;
@@ -77,12 +97,12 @@ int main( )
 		fX += 0.625f;
 	}
 	
-	/* Bitmap Test *
+	/* Bitmap Test */
 	for( y = 200; y <= 384; y += 16 )
-		for( x1 = 320; x1 <= 632; x1 += 8 )
-			draw_bitmap_8( fbBase8, x1, y, tempBitMap, 16 );
+		for( x1 = 320; x1 <= 624; x1 += 16 )
+			draw_bitmap_16( fbBase16, x1, y, tempBitMap16, 16 );
 			
-	/* CheckerBoard Test *
+	/* CheckerBoard Test */
 	for( x2 = 0; x2 < 8; x2++ )
 	{
 		for( x1 = 0; x1 <= 304; x1 += 16 )
@@ -121,8 +141,9 @@ int main( )
 			}
 			bDraw = !bDraw;
 		}
-	}*/
+	}
 	
+	/* Character Map Test
 	x1 = 0;
 	y = 0;
 	for( x2 = 0; x2 < 128; x2++ )
@@ -135,7 +156,7 @@ int main( )
 			x1 = 0;
 			y += 16;
 		}
-	}
+	}*/
 	
 	/* Bitmap Clip Test 
 	x1 = -8;

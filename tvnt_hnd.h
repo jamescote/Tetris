@@ -7,6 +7,6 @@
 
 /* Public Function Declarations */
 void handleAsync( const long lTrigger, Game_Model* m_MainGameModel );
-void handleSync( UINT16* fbBase16, UINT8* iTimeElapsed, Game_Model* m_MainGameModel );
+void handleSync( UINT16* fbBase16, Game_Model* m_MainGameModel );
 
 #endif

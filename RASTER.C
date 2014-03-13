@@ -9,6 +9,7 @@
 #define LONG_SCREEN_WIDTH 20
 #define WORD_SCREEN_WIDTH 40
 #define BYTE_SCREEN_WIDTH 80
+#define WORD_SHIFT_SIZE 4
 
 
 /*
@@ -89,25 +90,25 @@ void draw_square( UINT16* fbBase,
 /*
 	Purpose: Draw a horizontal line to the frame buffer.
 */
-void plot_h_line( ULONG32* fbBase,
+void plot_h_line( UINT32* fbBase,
 		  int x1, int x2, int y )
 {
 	int xStart 			= x1 > x2 ? x2 : x1;
 	int xFinish 		= xStart == x1 ? x2 : x1;
 	UINT8 bLongMask		= SIZE_LONG - 1;
-	ULONG32* fbStart		= fbBase + (y * LONG_SCREEN_WIDTH);
-	ULONG32* fbFin 		= fbStart + (xFinish >> 5);
+	UINT32* fbStart		= fbBase + (y * LONG_SCREEN_WIDTH);
+	UINT32* fbFin 		= fbStart + (xFinish >> 5);
 	fbStart 			+= (xStart >> 5);
 	
 	if( fbStart == fbFin )
-		*fbStart |= ((ULONG32)-1 >> (xStart & bLongMask) & 
-					(ULONG32)-1 << (bLongMask - (xFinish & bLongMask)));
+		*fbStart |= ((UINT32)-1 >> (xStart & bLongMask) & 
+					(UINT32)-1 << (bLongMask - (xFinish & bLongMask)));
 	else
 	{
-		*(fbStart++) |= (ULONG32)-1 >> (xStart & bLongMask);
+		*(fbStart++) |= (UINT32)-1 >> (xStart & bLongMask);
 		while( fbStart != fbFin )
-			*(fbStart++) = (ULONG32)-1;
-		*fbStart |= (ULONG32)-1 << (bLongMask - (xFinish & bLongMask));
+			*(fbStart++) = (UINT32)-1;
+		*fbStart |= (UINT32)-1 << (bLongMask - (xFinish & bLongMask));
 	}
 	
 }
@@ -171,6 +172,29 @@ void draw_bitmap_8( UINT8* fbBase,
 				*(fbBase + 1) = (*pBitMap << ((SIZE_BYTE - 1) - iOffSet));
 			pBitMap++;
 			fbBase += BYTE_SCREEN_WIDTH;
+		}
+	}
+}
+
+/*
+	draws a 16-bit wide bitmap to the screen at a given x and y pixel position.
+	The height is to denote the length of the bitmap array.
+*/
+void draw_bitmap_16( UINT16* fbBase16,
+		   int x, int y,
+		   const UINT16* pBitMap,
+		   unsigned int iHeight )
+{
+	UINT8 i;
+	
+	if( !(x & (SIZE_WORD - 1)) && (y < YSCREENSIZE && y >= 0) )
+	{
+		fbBase16 += (y * WORD_SCREEN_WIDTH) + (x >> WORD_SHIFT_SIZE);
+		
+		for( i = 0; i < iHeight; i++ )
+		{
+			*fbBase16 = pBitMap[ i ];
+			fbBase16 += WORD_SCREEN_WIDTH;
 		}
 	}
 }

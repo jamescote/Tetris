@@ -4,8 +4,8 @@ tst_rast: tst_rast.o raster.o
 tst_mod: tst_mod.o model.o mod_asm.o
 	cc68x -g tst_mod.o model.o mod_asm.o -o tst_mod
 	
-tst_rend: tst_rend.o renderer.o raster.o model.o mod_asm.o
-	cc68x -g tst_rend.o renderer.o raster.o model.o mod_asm.o -o tst_rend
+tst_rend: tst_rend.o renderer.o rend_asm.o raster.o model.o mod_asm.o
+	cc68x -g tst_rend.o renderer.o rend_asm.o raster.o model.o mod_asm.o -o tst_rend
 	
 tst_inp: tst_inp.o
 	cc68x -g tst_inp.o -o tst_inpt
@@ -19,8 +19,8 @@ tst_rend.o: tst_rend.c renderer.h model.h
 tst_mod.o: tst_mod.c model.h
 	cc68x -g -c tst_mod.c
 	
-tetris: tet_main.o model.o renderer.o tvnt_hnd.o input.o raster.o mod_asm.o 
-	cc68x -g tet_main.o model.o renderer.o tvnt_hnd.o input.o raster.o mod_asm.o -o tetris
+tetris: tet_main.o model.o renderer.o rend_asm.o tvnt_hnd.o input.o raster.o mod_asm.o 
+	cc68x -g tet_main.o model.o renderer.o rend_asm.o tvnt_hnd.o input.o raster.o mod_asm.o -o tetris
 	
 tet_main.o: tet_main.c
 	cc68x -g -c tet_main.c
@@ -45,6 +45,9 @@ raster.o: raster.c raster.h
 	
 renderer.o: renderer.c renderer.h
 	cc68x -g -c renderer.c
+
+rend_asm.o: rend_asm.s
+	gen -D -L2 rend_asm.s
 	
 all:
 	make clean

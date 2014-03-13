@@ -1,6 +1,5 @@
 			xdef		_rot_R
 			xdef		_rot_L
-; [TO DO] delete this example function
 
 ;; TETRIS CONSTANTS
 mapArrySz		equ		3

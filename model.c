@@ -15,6 +15,7 @@ void fixPosition( Tetrimino* m_PieceToFix,
 				  Game_Board* m_Board );
 bool pieceCollided( Tetrimino* m_PieceToCheck,
 					 Game_Board* m_Board );
+bool isTetriminoOutOfBounds( const Tetrimino* m_PieceToCheck );
 					 
  /*
 	Sets the game Model into a fresh state for starting a new game.
@@ -31,17 +32,17 @@ void reset_Game( Game_Model* m_MainModel, UINT8 cFirstPiece, UINT8 cNxtPiece )
 		m_MainModel->cCurrPiece.iMap[ i ] = iStartingMaps[ cFirstPiece ][ i ];
 	
 	/* Reset Game Board */
-	m_MainModel->cMainBoard.BoardMap[ 0 ] = FULL_LINE; /* Testing Purposes */
-	for( i = 1; i < BOARD_HEIGHT; i++ )
+	for( i = 0; i < BOARD_HEIGHT; i++ )
 		m_MainModel->cMainBoard.BoardMap[ i ] = 0x0;
-	m_MainModel->cMainBoard.iScore 		= 0;
-	m_MainModel->cMainBoard.iLns_Clrd 	= 0;
-	m_MainModel->cMainBoard.iLvl		= 1;
-	m_MainModel->cMainBoard.tetrisCombo	= 0;
-	m_MainModel->cMainBoard.chainCount	= 0;
-	m_MainModel->cMainBoard.nxtPiece	= cNxtPiece;
-	m_MainModel->cMainBoard.state		= BOARD_RUN_STATE;
-	m_MainModel->cMainBoard.iGrvty		= 70;
+	m_MainModel->cMainBoard.iScore 			= 0;
+	m_MainModel->cMainBoard.iLns_Clrd 		= 0;
+	m_MainModel->cMainBoard.iLvl			= 0;
+	m_MainModel->cMainBoard.tetrisCombo		= 1;
+	m_MainModel->cMainBoard.chainCount		= 1;
+	m_MainModel->cMainBoard.nxtPiece		= cNxtPiece;
+	m_MainModel->cMainBoard.state			= BOARD_RUN_STATE;
+	m_MainModel->cMainBoard.iGrvty			= 70;
+	m_MainModel->cMainBoard.iTimeElapsed	= 0;
 }
 
 /*
@@ -75,6 +76,7 @@ void copyGameBoard( Game_Board* m_Target, const Game_Board* m_Source )
 	m_Target->nxtPiece		= m_Source->nxtPiece;
 	m_Target->state			= m_Source->state;
 	m_Target->iGrvty		= m_Source->iGrvty;
+	m_Target->iTimeElapsed 	= m_Source->iTimeElapsed;
 }
 
 void tetToString( char* cBuffer, const Tetrimino* m_Tetrimino )
@@ -97,6 +99,20 @@ void gbToString( char* cBuffer, const Game_Board* m_Board )
 			m_Board->nxtPiece,
 			m_Board->state,
 			m_Board->iGrvty );
+}
+
+/*
+	Determines if the synchronous gravity trigger has occurred
+	Resets the time elapsed variable if it has.
+*/
+bool gravityTriggered( Game_Board* m_Board )
+{
+	bool bTriggered = (m_Board->iTimeElapsed >= m_Board->iGrvty);
+	
+	if( bTriggered )
+		m_Board->iTimeElapsed = 0;
+		
+	return bTriggered;
 }
 					 
 /*
@@ -148,14 +164,7 @@ void move_Left( Tetrimino* m_PieceToMove,
  */
  void move_Down( Tetrimino* m_PieceToMove,
 				 Game_Board* m_Board )
-{
-	UINT8 iNextPos = m_PieceToMove->bPos[ Y_POS ];
-	UINT8 i = 3;
-	
-	while( m_PieceToMove->iMap[ i ] != (UINT16)0 )
-		i--;
-	
-	iNextPos += (i - 1);
+{	
 	m_PieceToMove->bPos[ Y_POS ]--;
 	
 	if( pieceCollided( m_PieceToMove, m_Board ) )
@@ -169,14 +178,14 @@ void move_Left( Tetrimino* m_PieceToMove,
 	Rotates a Tetrimino and positions the piece to avoid collisions after the rotate.
 */
 void Rotate( Tetrimino* m_PieceToRotate,
-			  const Game_Board* m_Board, UINT8 cDirection )
+			 Game_Board* m_Board, UINT8 cDirection )
 {
-	UINT16 xMap[4] = {0x0,0x0,0x0,0x0};
+	UINT16 xMap[T_HEIGHT] = {0x0,0x0,0x0,0x0};
 	UINT8 i, j = m_PieceToRotate->bPos[ X_POS ];
 	
-	while( j != 3 )
+	while( j != RIGHT_ALIGNED_X_POS )
 	{
-		if( j > 3 )
+		if( j > RIGHT_ALIGNED_X_POS )
 		{
 			for( i = 0; i < T_HEIGHT; i++ )
 				m_PieceToRotate->iMap[ i ] >>= 1;
@@ -206,6 +215,9 @@ void Rotate( Tetrimino* m_PieceToRotate,
 		m_PieceToRotate->iMap[ i ] = xMap[ i ];
 	
 	fixPosition( m_PieceToRotate, m_Board );
+	
+	/* push back gravity counter to give time for moving piece. */
+	m_Board->iTimeElapsed -= GRAVITY_DELTA;
 }
 
 /*
@@ -217,14 +229,14 @@ void fixPosition( Tetrimino* m_PieceToFix,
 	UINT16 wSquishedMap;
 	UINT8 i, j;
 	
-	if( m_PieceToFix->bPos[ X_POS ] > 3 )
+	if( m_PieceToFix->bPos[ X_POS ] > RIGHT_ALIGNED_X_POS )
 	{
-		for( j = 3; j < m_PieceToFix->bPos[ X_POS ]; j++ )
+		for( j = RIGHT_ALIGNED_X_POS; j < m_PieceToFix->bPos[ X_POS ]; j++ )
 			for( i = 0; i < T_HEIGHT; i++ )
 				m_PieceToFix->iMap[ i ] <<= 1;
 	}
 	else 
-		m_PieceToFix->bPos[ X_POS ] = 3;
+		m_PieceToFix->bPos[ X_POS ] = RIGHT_ALIGNED_X_POS;
 		
 	wSquishedMap = squishMap( m_PieceToFix );
 	
@@ -250,10 +262,13 @@ bool pieceCollided( const Tetrimino* m_PieceToCheck,
 	
 	while( !bReturnValue && (i < T_HEIGHT) )
 	{
-		if( iOffset >= 0 )
-			bReturnValue = (m_PieceToCheck->iMap[ i ] & m_Board->BoardMap[ iOffset ]) != 0;
-		else
-			bReturnValue = (m_PieceToCheck->iMap[ i ] != 0); 
+		if( iOffset < BOARD_HEIGHT )
+		{
+			if( iOffset >= 0 )
+				bReturnValue = (m_PieceToCheck->iMap[ i ] & m_Board->BoardMap[ iOffset ]) != 0;
+			else
+				bReturnValue = (m_PieceToCheck->iMap[ i ] != 0); 
+		}
 		
 		iOffset -= 1;
 		i++;
@@ -273,18 +288,8 @@ void spawnPiece( Tetrimino* m_cCurrPiece, UINT8 iPiece )
 	m_cCurrPiece->bPos[ Y_POS ] = TETRI_START_POS_Y;
 	m_cCurrPiece->bPos[ X_POS ] = TETRI_START_POS_X;
 	
-	if( (iPiece < 0) || (iPiece > MAX_TETRIMINOS) )
-	{
-		m_cCurrPiece->iMap[0] = 0x0050;
-		m_cCurrPiece->iMap[1] = 0x0028;
-		m_cCurrPiece->iMap[2] = 0x0050;
-		m_cCurrPiece->iMap[3] = 0x0028;
-	}
-	else
-	{
-		for( i = 0; i < T_HEIGHT; i++ )
-			m_cCurrPiece->iMap[ i ] = iStartingMaps[ iPiece ][ i ];
-	}
+	for( i = 0; i < T_HEIGHT; i++ )
+		m_cCurrPiece->iMap[ i ] = iStartingMaps[ iPiece ][ i ];
 }
 
 /*
@@ -293,10 +298,10 @@ void spawnPiece( Tetrimino* m_cCurrPiece, UINT8 iPiece )
 void lock_piece( Game_Board* m_Board,
 				 Tetrimino* m_cLockingPiece )
 {
-	UINT8 iPiecePos = m_cLockingPiece->bPos[ Y_POS ];
+	int iPiecePos = m_cLockingPiece->bPos[ Y_POS ];
 	UINT8 i;
 
-	if( iPiecePos < BOARD_HEIGHT && iPiecePos >= 0 )
+	if( !isTetriminoOutOfBounds( m_cLockingPiece ) )
 	{
 		for( i = 0; i < T_HEIGHT; i++ )
 			m_Board->BoardMap[ iPiecePos - i ] |= 
@@ -308,6 +313,22 @@ void lock_piece( Game_Board* m_Board,
 	}
 	else
 		m_Board->state = BOARD_GAME_OVER_STATE;
+}
+
+/* 
+	Verify that the tetrimino is out of bounds and not just the position 
+	of the tetrimino.
+*/
+bool isTetriminoOutOfBounds( const Tetrimino* m_PieceToCheck )
+{
+	bool bOutOfBounds = ( m_PieceToCheck->bPos[ Y_POS ] >= (BOARD_HEIGHT + T_HEIGHT) );
+	UINT8 i = 0;
+						
+	if( !bOutOfBounds && m_PieceToCheck->bPos[ Y_POS ] >= BOARD_HEIGHT )
+		while( m_PieceToCheck->bPos[ Y_POS ] - i >= BOARD_HEIGHT )
+			bOutOfBounds |= m_PieceToCheck->iMap[ i++ ];
+			
+	return bOutOfBounds;
 }
 
 /*
@@ -331,18 +352,22 @@ void Calc_Score( Game_Board* m_Board )
 				m_Board->tetrisCombo++;
 		}
 		else
-			m_Board->tetrisCombo = 0;
+			m_Board->tetrisCombo = 1;
 		
 		m_Board->iLns_Clrd += iLinesCleared;
 		
-		if( ( m_Board->iLns_Clrd / 10 ) > m_Board->iLvl )
+		if( m_Board->iLns_Clrd >= LEVEL_THRESHOLD )
 		{
 			m_Board->iLvl++;
+			m_Board->iLns_Clrd -= LEVEL_THRESHOLD;
 			m_Board->iGrvty -= GRAVITY_DELTA;
+			m_Board->iTimeElapsed = 0;
 		}
+		
+		m_Board->iScore += iPointsScored;
 	}
 	else
-		m_Board->chainCount = m_Board->iLvl;
+		m_Board->chainCount = m_Board->iLvl + 1;
 }
 
 /*

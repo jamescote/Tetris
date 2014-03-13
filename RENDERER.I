@@ -1,7 +1,106 @@
-#ifndef _FONT_C
-#define _FONT_C
+# 1 "renderer.c" 1
+# 1 "./renderer.h" 1
+# 1 "./model.h" 1
+# 1 "./types.h" 1
 
-const static unsigned char charMap[128][16] = 
+
+
+typedef unsigned char UINT8;
+typedef unsigned int  UINT16;
+typedef unsigned long UINT32;
+# 4 "./model.h" 2
+# 1 "./gm_cnsts.h" 1
+# 5 "./model.h" 2
+
+
+
+typedef struct
+{
+	UINT8 bPos[ 2 ];
+	UINT16 iMap[ 4  ];
+} Tetrimino;
+# 21 "./model.h"
+typedef struct
+{
+	UINT16 BoardMap[ 20  ];
+	UINT16 iScore, iLns_Clrd, iLvl;
+	UINT8 tetrisCombo, chainCount, nxtPiece, state;
+	UINT8 iGrvty, iTimeElapsed;
+} Game_Board;
+
+typedef struct
+{
+	Tetrimino cCurrPiece;
+	Game_Board cMainBoard;
+} Game_Model;
+
+
+void reset_Game( Game_Model* m_MainModel, UINT8 cFirstPiece, UINT8 cNxtPiece );
+void move_Left( Tetrimino* m_PieceToMove,
+				const Game_Board* m_BoardRef );
+void move_Right( Tetrimino* m_PieceToMove,
+				 const Game_Board* m_BoardRef );
+void move_Down( Tetrimino* m_PieceToMove,
+				Game_Board* m_Board );
+void Rotate( Tetrimino* m_PieceToRotate,
+			 Game_Board* m_Board, UINT8 cDirection );
+void Game_Over(Game_Board* m_Board,
+				Tetrimino* m_cLockingPiece );
+UINT8 clear_Lines(Game_Board* m_Board );
+void spawnPiece( Tetrimino* m_cCurrPiece, UINT8 iPiece );
+void copyTetrimino( Tetrimino* m_Target, const Tetrimino* m_Source );
+void copyGameBoard( Game_Board* m_Target, const Game_Board* m_Source );
+UINT8  gravityTriggered( Game_Board* m_Board );
+
+void tetToString( char* cBuffer, const Tetrimino* m_Tetrimino );
+void gbToString( char* cBuffer, const Game_Board* m_Board );
+# 4 "./renderer.h" 2
+# 1 "./types.h" 1
+# 5 "./renderer.h" 2
+
+
+
+
+
+void render_Tetrimino( UINT16* fbBase16,
+					   const Tetrimino* m_TetriModel );
+void render_Board( UINT16* fbBase16,
+				   const Game_Board* m_Board );
+void render_All( UINT16* fbBase16,
+				 const Game_Model* m_GameModel );
+void render_String( UINT8* fbBase8,
+					const char* sText,
+					UINT16 iXPxlPos, UINT16 iYPxlPos );
+void clear_Screen( UINT16* fbBase16 );
+# 9 "renderer.c" 2
+# 1 "./raster.h" 1
+# 1 "./types.h" 1
+# 4 "./raster.h" 2
+
+
+void clear_region( UINT16* fbBase,
+		   int x1, int x2,
+		   int y1, int y2 );
+void draw_square( UINT16* fbBase,
+		  int x, int y );
+void plot_h_line( UINT32* fbBase,
+		  int x1, int x2, int y );
+void plot_v_line( UINT8* fbBase,
+		  int x, int y1, int y2 );
+void draw_bitmap_8( UINT8* fbBase,
+		   int x, int y,
+		   const UINT8* pBitMap,
+		   unsigned int iHeight );
+void draw_bitmap_16( UINT16* fbBase16,
+		   int x, int y,
+		   const UINT16* pBitMap,
+		   unsigned int iHeight );
+# 10 "renderer.c" 2
+# 1 "./font.c" 1
+
+
+
+const static unsigned char charMap[128][16] =
 {{0xFFFFFF00, 0xFFFFFF00, 0xFFFFFF36, 0xFFFFFF77, 0xFFFFFF7F, 0xFFFFFF7F, 0xFFFFFF7F, 0xFFFFFF7F, 0xFFFFFF3E, 0xFFFFFF3E, 0xFFFFFF1C, 0xFFFFFF1C, 0xFFFFFF08, 0xFFFFFF08, 0xFFFFFF00, 0xFFFFFF00},
 {0xFFFFFF18, 0xFFFFFF18, 0xFFFFFF18, 0xFFFFFF18, 0xFFFFFF18, 0xFFFFFF18, 0xFFFFFF1F, 0xFFFFFF1F, 0xFFFFFF1F, 0xFFFFFF1F, 0xFFFFFF18, 0xFFFFFF18, 0xFFFFFF18, 0xFFFFFF18, 0xFFFFFF18, 0xFFFFFF18},
 {0xFFFFFF03, 0xFFFFFF03, 0xFFFFFF03, 0xFFFFFF03, 0xFFFFFF03, 0xFFFFFF03, 0xFFFFFF03, 0xFFFFFF03, 0xFFFFFF03, 0xFFFFFF03, 0xFFFFFF03, 0xFFFFFF03, 0xFFFFFF03, 0xFFFFFF03, 0xFFFFFF03, 0xFFFFFF03},
@@ -131,5 +230,480 @@ const static unsigned char charMap[128][16] =
 {0xFFFFFF08, 0xFFFFFF08, 0xFFFFFF18, 0xFFFFFF18, 0xFFFFFF38, 0xFFFFFF38, 0xFFFFFF78, 0xFFFFFF78, 0xFFFFFF38, 0xFFFFFF38, 0xFFFFFF18, 0xFFFFFF18, 0xFFFFFF08, 0xFFFFFF08, 0xFFFFFF00, 0xFFFFFF00},
 {0xFFFFFF10, 0xFFFFFF10, 0xFFFFFF18, 0xFFFFFF18, 0xFFFFFF1C, 0xFFFFFF1C, 0xFFFFFF1E, 0xFFFFFF1E, 0xFFFFFF1C, 0xFFFFFF1C, 0xFFFFFF18, 0xFFFFFF18, 0xFFFFFF10, 0xFFFFFF10, 0xFFFFFF00, 0xFFFFFF00}
 };
+# 11 "renderer.c" 2
+# 1 "./tetri.c" 1
+# 1 "./gm_cnsts.h" 1
+# 5 "./tetri.c" 2
 
-#endif
+
+const static UINT16 iStartingMaps[ ][ 4  ] =
+{
+
+	{0x0000, 0x0018, 0x0018, 0x0000},
+
+
+	{0x0000, 0x0000, 0x0018, 0x0030},
+
+
+	{0x0000, 0x0000, 0x0030, 0x0018},
+
+
+	{0x0020, 0x0020, 0x0020, 0x0020},
+
+
+	{0x0000, 0x0010, 0x0010, 0x0030},
+
+
+	{0x0000, 0x0020, 0x0020, 0x0030},
+
+
+	{0x0038, 0x0010, 0x0000, 0x0000}
+};
+
+const static UINT8 iNextMaps[ ][ 4  ] =
+{
+
+	{0x00, 0x06, 0x06, 0x00},
+
+
+	{0x00, 0x06, 0x0c, 0x00},
+
+
+	{0x00, 0x06, 0x03, 0x00},
+
+
+	{0x00, 0x0f, 0x00, 0x00},
+
+
+	{0x00, 0x02, 0x02, 0x06},
+
+
+	{0x00, 0x04, 0x04, 0x06},
+
+
+	{0x00, 0x0e, 0x04, 0x00}
+};
+
+
+const static UINT16 iMinoBitmap[ 16  ] =
+{
+	0x0000,
+	0x7ffe,
+	0x7ffe,
+	0x7ffe,
+	0x7ffe,
+	0x7ffe,
+	0x7ffe,
+	0x7e7e,
+	0x7e7e,
+	0x7ffe,
+	0x7ffe,
+	0x7ffe,
+	0x7ffe,
+	0x7ffe,
+	0x7ffe,
+	0x0000
+};
+# 12 "renderer.c" 2
+# 1 "./gm_cnsts.h" 1
+# 13 "renderer.c" 2
+
+
+
+void render_Line( UINT16* fbBase16,
+				  UINT16 iMap,
+				  int iYPxlPos,
+				  UINT8 bClearFlag,
+				  UINT8  bAND );
+UINT8  redrawTetrimino( const Tetrimino* m_CurrTetrimino );
+void clear_Tetrimino( UINT16* fbBase16 );
+void WToStr( char* cReturnString, UINT16 iValue );
+void render_Value( UINT8* fbBase8, UINT16 iValue, UINT16 iXPxlPos, UINT16 iYPxlPos );
+void render_Static( UINT16* fbBase16 );
+void render_Status( UINT8* fbBase8, const Game_Board* m_Board );
+void fill_Board( UINT16* fbBase16, const Game_Board* m_Board );
+void render_Next_Tetrimino( UINT16* fbBase16, const Game_Board* m_Board );
+
+
+struct sRendState
+{
+	Tetrimino m_TetriState;
+	Game_Board m_BoardState;
+	UINT8  bInitialDrawn;
+} sMainState =
+	{
+		{{0}, {0}},
+		{{0},(unsigned int)-1 ,
+			 (unsigned int)-1 ,
+			 (unsigned int)-1 ,
+			 (unsigned char)-1 ,
+			 (unsigned char)-1 ,
+			 (unsigned char)-1 ,
+			 (unsigned char)-1 ,
+			 (unsigned char)-1  },
+		0 
+	};
+# 58 "renderer.c"
+void reset_Rend_State( )
+{
+	UINT8 i;
+
+
+	sMainState.m_TetriState.bPos[ 0  ] = 0;
+	sMainState.m_TetriState.bPos[ 1  ] = 0;
+	for( i = 0; i < 4 ; i++ )
+		sMainState.m_TetriState.iMap[ i ] = 0;
+
+
+	for( i = 0; i < 20 ; i++ )
+		sMainState.m_BoardState.BoardMap[ i ] = 0;
+	sMainState.m_BoardState.iScore 			= (unsigned int)-1 ;
+	sMainState.m_BoardState.iLns_Clrd 		= (unsigned int)-1 ;
+	sMainState.m_BoardState.iLvl			= (unsigned int)-1 ;
+	sMainState.m_BoardState.nxtPiece		= (unsigned char)-1 ;
+
+
+	sMainState.bInitialDrawn				= 0 ;
+}
+
+
+
+
+void render_Tetrimino( UINT16* fbBase16,
+					   const Tetrimino* m_TetriModel )
+{
+	int iYPos = m_TetriModel->bPos[ 1  ];
+	UINT8 i = ( iYPos < 0 ? 0 - iYPos : 0 );
+
+	if( redrawTetrimino( m_TetriModel ) )
+	{
+		clear_Tetrimino( fbBase16 );
+
+		for( i; i < 4 ; i++ )
+			render_Line( fbBase16,
+						 m_TetriModel->iMap[ i ],
+						 (((20  - 1) - iYPos) + i) << 4 ,
+						 1 ,
+						 0  );
+
+		copyTetrimino( &(sMainState.m_TetriState), m_TetriModel );
+	}
+}
+
+
+
+
+
+UINT8  redrawTetrimino( const Tetrimino* m_CurrTetrimino )
+{
+	UINT8  bDifference;
+	UINT8 i;
+
+	bDifference = (sMainState.m_TetriState.bPos[ 0  ] != m_CurrTetrimino->bPos[ 0  ]);
+	bDifference = bDifference || (sMainState.m_TetriState.bPos[ 1  ] != m_CurrTetrimino->bPos[ 1  ]);
+
+	for( i = 0; i < 4 ; i++ )
+		bDifference = bDifference || (sMainState.m_TetriState.iMap[ i ] != m_CurrTetrimino->iMap[ i ]);
+
+	return bDifference;
+}
+
+
+
+
+void clear_Tetrimino( UINT16* fbBase16 )
+{
+	UINT16 iYPxlPos = 320  - ((sMainState.m_TetriState.bPos[ 1  ] + 1) << 4 );
+	UINT8 i;
+
+	for( i = 0; i < 4 ; i++ )
+	{
+		if( sMainState.m_TetriState.iMap[ i ] != 0 )
+		{
+			render_Line( fbBase16,
+						 sMainState.m_TetriState.iMap[ i ],
+					     iYPxlPos, 0 , 0  );
+		}
+		iYPxlPos += 16 ;
+	}
+}
+# 151 "renderer.c"
+void render_Line( UINT16* fbBase16,
+					 UINT16 iMap,
+					 int iYPxlPos,
+					 UINT8 bDrawFlag,
+					 UINT8  bAND )
+
+{
+	UINT16 i, iXPxlPos = (400  - 16 );
+	UINT16 iYPxlEndPos;
+	UINT8 bActiveBit;
+
+	if( iYPxlPos >= 0 && iYPxlPos < 400  )
+	{
+		iYPxlEndPos = iYPxlPos + 16 ;
+		for( i = 0; i < 10 ; i++ )
+		{
+			bActiveBit = (iMap & (2  - 1));
+
+			if( bDrawFlag && bActiveBit )
+
+				draw_bitmap_16( fbBase16,
+								iXPxlPos,
+								iYPxlPos,
+								iMinoBitmap,
+								16  );
+			else if( bAND || bActiveBit)
+				clear_region( fbBase16,
+							  iXPxlPos,
+							  iXPxlPos + 16 ,
+							  iYPxlPos,
+							  iYPxlEndPos );
+			iMap >>= 1;
+			iXPxlPos -= 16 ;
+		}
+	}
+}
+
+
+
+
+
+void render_Board( UINT16* fbBase16,
+				   const Game_Board* m_Board )
+{
+
+	if( !sMainState.bInitialDrawn )
+	{
+		render_Static( fbBase16 );
+		sMainState.bInitialDrawn = 1 ;
+	}
+
+
+
+	fill_Board( fbBase16, m_Board );
+
+	render_Next_Tetrimino( fbBase16, m_Board );
+
+	render_Status( (UINT8*)fbBase16, m_Board );
+}
+
+
+
+
+void fill_Board( UINT16* fbBase16, const Game_Board* m_Board )
+{
+	UINT16 iYPxlPos = 320  - 16 ;
+	UINT8 i = 0;
+
+	while( i < 20  &&
+		   ( m_Board->BoardMap[ i ] != 0 || sMainState.m_BoardState.BoardMap[ i ] != 0 ) )
+	{
+		if( m_Board->BoardMap[ i ] != sMainState.m_BoardState.BoardMap[ i ] )
+		{
+			render_Line( fbBase16,
+						 m_Board->BoardMap[ i ],
+						 iYPxlPos,
+						 1 ,
+						 1  );
+			sMainState.m_BoardState.BoardMap[ i ] = m_Board->BoardMap[ i ];
+		}
+		i++;
+		iYPxlPos -= 16 ;
+	}
+}
+
+
+
+
+void render_Next_Tetrimino( UINT16* fbBase16, const Game_Board* m_Board )
+{
+	UINT8 iTetMap;
+	UINT16 iXPxlPos = ((400  + 16 )  + (16  << 2 ))  - 16 ;
+	UINT16 iCurrXPxlPos = iXPxlPos;
+	UINT16 iYPxlPos = 32 ;
+	UINT8 i, j;
+
+	if( m_Board->nxtPiece != sMainState.m_BoardState.nxtPiece )
+	{
+		clear_region( fbBase16,
+					  (400  + 16 ) ,
+					  ((400  + 16 )  + (16  << 2 )) ,
+					  32 ,
+					  (32  + (16  << 2 ))  );
+
+		for( i = 0; i < 4 ; i++ )
+		{
+			iTetMap = iNextMaps[ m_Board->nxtPiece ][ i ];
+			for( j = 0; j < 4 ; j++ )
+			{
+				if( (iTetMap & 1) != 0 )
+					draw_bitmap_16( fbBase16,
+									iCurrXPxlPos, iYPxlPos,
+									iMinoBitmap,
+									16  );
+				iTetMap >>= 1;
+				iCurrXPxlPos -= 16 ;
+			}
+			iCurrXPxlPos = iXPxlPos;
+			iYPxlPos += 16 ;
+		}
+
+		sMainState.m_BoardState.nxtPiece = m_Board->nxtPiece;
+	}
+}
+
+void render_Status( UINT8* fbBase8, const Game_Board* m_Board )
+{
+
+	if( m_Board->iScore != sMainState.m_BoardState.iScore )
+	{
+		render_Value( fbBase8, m_Board->iScore, ((400  + 8 )  + 120) , ((32  + (16  << 2 ))  + 16 ) + 1  );
+		sMainState.m_BoardState.iScore = m_Board->iScore;
+	}
+
+
+	if( m_Board->iLvl != sMainState.m_BoardState.iLvl )
+	{
+		render_Value( fbBase8, m_Board->iLvl + 1, ((400  + 8 )  + 120) , (((32  + (16  << 2 ))  + 16 ) + 1  + (16  + 5 ))  );
+		sMainState.m_BoardState.iLvl = m_Board->iLvl;
+	}
+
+
+	if( m_Board->iLns_Clrd != sMainState.m_BoardState.iLns_Clrd )
+	{
+		render_Value( fbBase8, m_Board->iLns_Clrd, ((400  + 8 )  + 120) , ((((32  + (16  << 2 ))  + 16 ) + 1  + (16  + 5 ))  + (16  + 5 ))  );
+		sMainState.m_BoardState.iLns_Clrd = m_Board->iLns_Clrd;
+	}
+}
+
+void render_Value( UINT8* fbBase8, UINT16 iValue, UINT16 iXPxlPos, UINT16 iYPxlPos )
+{
+	char cValueBuffer[ 255  ] = {0x0};
+
+	WToStr( cValueBuffer, iValue );
+
+	render_String( fbBase8, cValueBuffer,
+				   iXPxlPos, iYPxlPos );
+}
+
+void render_Static( UINT16* fbBase16 )
+{
+	clear_Screen( fbBase16 );
+
+
+	plot_v_line( (UINT8*)fbBase16, (240  - 1) , 0, (320  + 1)  );
+	plot_v_line( (UINT8*)fbBase16, (400  + 1) , 0, (320  + 1)  );
+	plot_h_line( (UINT32*)fbBase16,
+				 (240  - 1) ,
+				 (400  + 1) ,
+				 (320  + 1)  );
+
+
+	render_String( (UINT8*)fbBase16,
+				   "NEXT:",
+				   ((400  + 16 )  + 16 ) ,
+				   (32  - 16 )  );
+	render_String( (UINT8*)fbBase16,
+				   "SCORE: ",
+				   (400  + 8 ) ,
+				   ((32  + (16  << 2 ))  + 16 ) + 1  );
+	render_String( (UINT8*)fbBase16,
+				   "LEVEL: ",
+				   (400  + 8 ) ,
+				   (((32  + (16  << 2 ))  + 16 ) + 1  + (16  + 5 ))  );
+	render_String( (UINT8*)fbBase16,
+				   "LINES CLEARED: ",
+				   (400  + 8 ) ,
+				   ((((32  + (16  << 2 ))  + 16 ) + 1  + (16  + 5 ))  + (16  + 5 ))  );
+
+
+	plot_h_line( (UINT32*)fbBase16,
+				 (400  + 1) ,
+				 ((400  + 16 )  + (16  << 2 ))  + 16 ,
+				 32  - 16  );
+	plot_h_line( (UINT32*)fbBase16,
+				 (400  + 16 ) ,
+				 ((400  + 16 )  + (16  << 2 )) ,
+				 32  - 1 );
+	plot_v_line( (UINT8*)fbBase16,
+				 (400  + 16 )  - 1,
+				 32 ,
+				 (32  + (16  << 2 ))  );
+	plot_v_line( (UINT8*)fbBase16,
+				 ((400  + 16 )  + (16  << 2 ))  + 1,
+				 32 ,
+				 (32  + (16  << 2 ))  );
+	plot_v_line( (UINT8*)fbBase16,
+				 ((400  + 16 )  + (16  << 2 ))  + 16 ,
+				 32  - 16 ,
+				 (32  + (16  << 2 ))  + 16  );
+	plot_h_line( (UINT32*)fbBase16,
+				 (400  + 1) ,
+				 ((400  + 16 )  + (16  << 2 ))  + 16 ,
+				 (32  + (16  << 2 ))  + 16  );
+	plot_h_line( (UINT32*)fbBase16,
+				 (400  + 16 ) ,
+				 ((400  + 16 )  + (16  << 2 )) ,
+				 (32  + (16  << 2 ))  + 1 );
+
+	sMainState.bInitialDrawn = 1 ;
+}
+
+
+
+
+void render_All( UINT16* fbBase16,
+				 const Game_Model* m_GameModel )
+{
+	render_Tetrimino( fbBase16, &(m_GameModel->cCurrPiece) );
+	render_Board( fbBase16, &(m_GameModel->cMainBoard) );
+}
+
+
+
+
+
+void render_String( UINT8* fbBase8, const char* sText, UINT16 iXPxlPos, UINT16 iYPxlPos )
+{
+	UINT16 iCurrX = iXPxlPos, iCurrY = iYPxlPos;
+	UINT8 iStrIndex = 0;
+	UINT8  bNewLine = 0 ;
+
+	while( iStrIndex < 255  && sText[ iStrIndex ] != 0 )
+	{
+		if( sText[ iStrIndex ] == '\n' )
+			bNewLine = 1 ;
+		else if( sText[ iStrIndex ] == '\t' )
+		{
+			while( (iCurrX += 8 ) % 31 )
+				;
+			if( iCurrX >= 640  )
+				bNewLine = 1 ;
+		}
+		else if( sText[ iStrIndex ] < 128  )
+			draw_bitmap_8( fbBase8, iCurrX, iCurrY, charMap[ sText[ iStrIndex ] ], 16  );
+		else
+			draw_bitmap_8( fbBase8, iCurrX, iCurrY, charMap[ 0 ], 16  );
+
+		if( bNewLine )
+		{
+			iCurrX = iXPxlPos;
+			iCurrY += 16 ;
+			bNewLine = 0 ;
+		}
+		else
+			iCurrX += 8 ;
+
+		iStrIndex++;
+	}
+}
+
+
+
+
+void clear_Screen( UINT16* fbBase16 )
+{
+	clear_region( fbBase16, 0, 640 , 0, 400  );
+	reset_Rend_State( );
+}

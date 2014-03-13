@@ -23,7 +23,7 @@ typedef struct
 	UINT16 BoardMap[ BOARD_HEIGHT ];
 	UINT16 iScore, iLns_Clrd, iLvl;
 	UINT8 tetrisCombo, chainCount, nxtPiece, state;
-	UINT8 iGrvty;
+	UINT8 iGrvty, iTimeElapsed;
 } Game_Board;
 
 typedef struct
@@ -48,6 +48,7 @@ UINT8 clear_Lines(Game_Board* m_Board );
 void spawnPiece( Tetrimino* m_cCurrPiece, UINT8 iPiece );
 void copyTetrimino( Tetrimino* m_Target, const Tetrimino* m_Source );
 void copyGameBoard( Game_Board* m_Target, const Game_Board* m_Source );
+bool gravityTriggered( Game_Board* m_Board );
 
 void tetToString( char* cBuffer, const Tetrimino* m_Tetrimino );
 void gbToString( char* cBuffer, const Game_Board* m_Board );
