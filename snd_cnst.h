@@ -1,0 +1,56 @@
+/*
+	Contains any Constants required by the sound
+	system for the game.
+	Written By: James Cote
+*/
+#ifndef _SOUND_CONSTS_H
+#define _SOUND_CONSTS_H
+
+#define MUSIC_CHANNEL 	0
+#define EXTRA_CHANNEL	1
+#define SFX_CHANNEL 	2
+
+/* Note Defines */
+#define E		0x17B
+#define B		0x0FD << 1
+#define C		0x1DE 
+#define D		0x1AA
+#define D_HIGH	D >> 1
+#define A		0x11C
+#define A_LOW 	A << 1
+#define F		0x166
+#define G		0x13E
+#define G_SHARP 0x12D
+#define REST	0x000
+#define NOISE	0x1000
+
+#define DOUBLE_QUARTER QUARTER << 1
+#define DOUBLE_QUARTER_MINUS_PAUSE QUARTER_MINUS_PAUSE << 1
+#define QUARTER 20
+#define EIGHTH 10
+#define ONEFIVE (QUARTER + EIGHTH)
+#define QUARTER_MINUS_PAUSE QUARTER - PAUSE_QUART
+#define EIGHTH_MINUS_PAUSE EIGHTH - PAUSE_EIGHTH
+#define ONEFIVE_MINUS_PAUSE ONEFIVE - PAUSE_ONEFIVE
+#define PAUSE_QUART 2
+#define PAUSE_EIGHTH 1
+#define PAUSE_ONEFIVE (PAUSE_QUART + PAUSE_EIGHTH)
+#define DEFAULT_VOLUME 0x0a
+#define ENVELOPE_VOLUME 0x10
+#define REST_VOLUME 0
+#define FREQUENCY_SHIFT 8
+
+#define TETRIS_HIGH_RES_NOTE_COUNT 100
+#define TETRIS_LOW_RES_NOTE_COUNT 192
+#define TOTAL_NUMBER_OF_SONGS 2
+#define TEMPO_SHIFT_DIVISOR 2
+#define MAX_VOLUME 0x0F
+
+/* Envelopes */
+#define TETRIS_THEME_ENVELOPE 0x00
+#define TETRI_MOVE_ENVELOPE	0x0F
+#define TETRI_LOCK_ENVELOPE TETRIS_THEME_ENVELOPE
+#define TOP_OUT_ENVELOPE TETRIS_THEME_ENVELOPE
+#define CLEAR_LINE_ENVELOPE TETRIS_THEME_ENVELOPE
+
+#endif

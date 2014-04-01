@@ -1,9 +1,18 @@
+/*
+	name: tetri.c
+	purpose: Contains starting values for each tetrimino;
+			 both dropping tetriminoes and next tetriminoes
+			 (next tetriminoes are arranged differently to look
+			  more centered).	
+			 Also contains the 16x16 bit bitmap for each mino.
+*/
 #ifndef _TETRI_C
 #define _TETRI_C
 
 /* Includes */
 #include "gm_cnsts.h"
 
+/* Main Tetrimino maps for dropping on the board. */
 const static UINT16 iStartingMaps[ ][ T_HEIGHT ] =
 {
 	/* O-Tetrimino */
@@ -28,6 +37,7 @@ const static UINT16 iStartingMaps[ ][ T_HEIGHT ] =
 	{0x0038, 0x0010, 0x0000, 0x0000}
 };
 
+/* 8-bit maps to display the next Tetrimino.*/
 const static UINT8 iNextMaps[ ][ T_HEIGHT ] =
 {
 	/* O-Tetrimino */

@@ -9,6 +9,7 @@
 #define LONG_SCREEN_WIDTH 20
 #define WORD_SCREEN_WIDTH 40
 #define BYTE_SCREEN_WIDTH 80
+#define BYTE_SHIFT_SIZE 3
 #define WORD_SHIFT_SIZE 4
 
 
@@ -61,28 +62,6 @@ void clear_region( UINT16* fbBase,
 			fbStartX 	+= WORD_SCREEN_WIDTH;
 			fbFinishX	+= WORD_SCREEN_WIDTH;
 			yStart++;
-		}
-	}
-}
-
-/*
-	Purpose: Draw a 16x16 pixel square that's filled in.
-	Note: Doesn't draw anything if x is not word aligned.
-*/
-void draw_square( UINT16* fbBase,
-		  int x, int y )
-{
-	UINT8  i;
-	
-	if( ( x >= 0 && x <= XSCREENSIZE - SIZE_WORD ) &&
-	    ( y >= 0 && y <= YSCREENSIZE - SIZE_WORD ) &&
-		( (x & SIZE_WORD - 1) == 0 ) )
-	{
-		fbBase += (y * WORD_SCREEN_WIDTH) + (x >> 4);
-		for( i = 0; i < SIZE_WORD; i++ )
-		{
-			*(fbBase) = (UINT16)-1;
-			fbBase += WORD_SCREEN_WIDTH;
 		}
 	}
 }
@@ -143,35 +122,21 @@ void plot_v_line( UINT8* fbBase,
 	Purpose: Draw a byte aligned bitmap.
 	TODO: Remove Clipping functionality.
 */
-void draw_bitmap_8( UINT8* fbBase,
+void draw_bitmap_8( UINT8* fbBase8,
 		     int x, int y,
 		     const UINT8* pBitMap,
 		     unsigned int iHeight )
 {
-	int iOffSet = (x & (SIZE_BYTE - 1));
-	char iDrawSides = 0;
-	UINT8* pEndOfBitmap = pBitMap;
+	UINT8 i;
 	
-	if( x > -SIZE_BYTE && x < XSCREENSIZE )
+	if( !(x & (SIZE_BYTE - 1)) && (y < YSCREENSIZE && y >= 0) )
 	{
-		fbBase 	+= (y * BYTE_SCREEN_WIDTH) + (x >> 3);
-		if( x < 0 )
-			iDrawSides++;
-		else if( XSCREENSIZE - x > (XSCREENSIZE - SIZE_BYTE) )
-			iDrawSides--;
+		fbBase8 += (y * BYTE_SCREEN_WIDTH) + (x >> BYTE_SHIFT_SIZE);
 		
-		pBitMap 	 -= y < 0 ? y : 0;
-		y += iHeight;
-		pEndOfBitmap += iHeight - (y >= YSCREENSIZE ? (y - YSCREENSIZE) : 0);
-			
-		while( pBitMap < pEndOfBitmap )
+		for( i = 0; i < iHeight; i++ )
 		{
-			if( iDrawSides <= 0 )
-				*fbBase = (*pBitMap >> iOffSet);
-			if( iDrawSides >= 0 )
-				*(fbBase + 1) = (*pBitMap << ((SIZE_BYTE - 1) - iOffSet));
-			pBitMap++;
-			fbBase += BYTE_SCREEN_WIDTH;
+			*fbBase8 = pBitMap[ i ];
+			fbBase8 += BYTE_SCREEN_WIDTH;
 		}
 	}
 }

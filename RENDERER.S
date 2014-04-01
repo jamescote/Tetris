@@ -199,95 +199,286 @@ _sMainState:
 	dc.b	0,0
 	even
 	dc.w	-1,-1,-1
-	dc.b	255,255,255,255,255,0,0,0
+	dc.b	255,0,0,0,0,0
+	even
+	dc.w	0
+	dc.b	0,0,0,0,0,0
+	even
+	dc.w	0
+	dc.b	0,0,0,0,0,0,0,0,0,0,0,0
+	dc.b	0,0,0,0,0,0,0,0,0,0,0,0
+	dc.b	0,0,0,0,0,0,0,0,0,0,0,0
+	dc.b	0,0
+	even
+	dc.w	-1,-1,-1
+	dc.b	255,0,0,0
+_iCurrState:
+	dc.b	0
 	text
 	even
 _reset_Rend_State:
 	link	a6,#-2
-	movem.l	d3/a3,-(a7)
+	movem.l	d3/d4/d5/a3,-(a7)
 	lea	_sMainState,a3
-	;line	63
-	clr.b	(a3)
-	;line	64
-	clr.b	1(a3)
-	;line	65
+	moveq	#60,d5
+	;line	68
 	moveq	#0,d3
 	bra	L6
 L5:
-	;line	66
+	;line	71
 	clr.l	d0
 	move.b	d3,d0
+	move.l	d0,-(a7)
+	move.l	d5,-(a7)
+	jsr	.Xlmul
+	clr.b	0(a3,d0.l)
+	;line	72
+	clr.l	d0
+	move.b	d3,d0
+	move.l	d0,-(a7)
+	move.l	d5,-(a7)
+	jsr	.Xlmul
+	move.l	d0,a0
+	add.l	a3,a0
+	clr.b	1(a0)
+	;line	73
+	moveq	#0,d4
+	bra	L10
+L9:
+	;line	74
+	clr.l	d0
+	move.b	d4,d0
 	move.l	d0,a0
 	add.l	a0,a0
-	add.l	a3,a0
+	move.l	a0,-(a7)
+	clr.l	d0
+	move.b	d3,d0
+	move.l	d0,-(a7)
+	move.l	d5,-(a7)
+	jsr	.Xlmul
+	add.l	a3,d0
+	move.l	(a7)+,a0
+	add.l	d0,a0
 	clr.w	2(a0)
+L12:
+	addq.b	#1,d4
+L10:
+	cmp.b	#4,d4
+	bcs	L9
+L11:
+	;line	77
+	moveq	#0,d4
+	bra	L14
+L13:
+	;line	78
+	clr.l	d0
+	move.b	d4,d0
+	move.l	d0,a0
+	add.l	a0,a0
+	move.l	a0,-(a7)
+	clr.l	d0
+	move.b	d3,d0
+	move.l	d0,-(a7)
+	move.l	d5,-(a7)
+	jsr	.Xlmul
+	add.l	a3,d0
+	move.l	(a7)+,a0
+	add.l	d0,a0
+	clr.w	10(a0)
+L16:
+	addq.b	#1,d4
+L14:
+	cmp.b	#20,d4
+	bcs	L13
+L15:
+	;line	79
+	clr.l	d0
+	move.b	d3,d0
+	move.l	d0,-(a7)
+	move.l	d5,-(a7)
+	jsr	.Xlmul
+	move.l	d0,a0
+	add.l	a3,a0
+	move.w	#65535,50(a0)
+	;line	80
+	clr.l	d0
+	move.b	d3,d0
+	move.l	d0,-(a7)
+	move.l	d5,-(a7)
+	jsr	.Xlmul
+	move.l	d0,a0
+	add.l	a3,a0
+	move.w	#65535,52(a0)
+	;line	81
+	clr.l	d0
+	move.b	d3,d0
+	move.l	d0,-(a7)
+	move.l	d5,-(a7)
+	jsr	.Xlmul
+	move.l	d0,a0
+	add.l	a3,a0
+	move.w	#65535,54(a0)
+	;line	82
+	clr.l	d0
+	move.b	d3,d0
+	move.l	d0,-(a7)
+	move.l	d5,-(a7)
+	jsr	.Xlmul
+	move.l	d0,a0
+	add.l	a3,a0
+	move.b	#255,56(a0)
 L8:
 	addq.b	#1,d3
 L6:
-	cmp.b	#4,d3
-	bcs	L5
+	cmp.b	#1,d3
+	bls	L5
 L7:
-	;line	69
+	movem.l	(a7)+,d3/d4/d5/a3
+	unlk	a6
+	rts
+_flag_FPS_Rend:
+	link	a6,#-2
+	move.l	d3,-(a7)
+	;line	93
 	moveq	#0,d3
-	bra	L10
-L9:
-	;line	70
-	clr.l	d0
+	bra	L18
+L17:
+	;line	94
+	clr.w	d0
 	move.b	d3,d0
+	mulu	#60,d0
 	move.l	d0,a0
-	add.l	a0,a0
-	add.l	a3,a0
-	clr.w	10(a0)
-L12:
+	add.l	#_sMainState,a0
+	move.b	#1,57(a0)
+L20:
 	addq.b	#1,d3
-L10:
-	cmp.b	#20,d3
-	bcs	L9
-L11:
-	;line	71
-	move.w	#65535,50(a3)
-	;line	72
-	move.w	#65535,52(a3)
-	;line	73
-	move.w	#65535,54(a3)
-	;line	74
-	move.b	#255,58(a3)
-	;line	77
-	clr.b	62(a3)
-	movem.l	(a7)+,d3/a3
+L18:
+	cmp.b	#1,d3
+	bls	L17
+L19:
+	move.l	(a7)+,d3
+	unlk	a6
+	rts
+_flag_FPS_Clear:
+	link	a6,#-2
+	move.l	d3,-(a7)
+	;line	104
+	moveq	#0,d3
+	bra	L22
+L21:
+	;line	105
+	clr.w	d0
+	move.b	d3,d0
+	mulu	#60,d0
+	move.l	d0,a0
+	add.l	#_sMainState,a0
+	move.b	#1,58(a0)
+L24:
+	addq.b	#1,d3
+L22:
+	cmp.b	#1,d3
+	bls	L21
+L23:
+	move.l	(a7)+,d3
+	unlk	a6
+	rts
+_render_FPS:
+	link	a6,#0
+	movem.l	d3/a3/a4,-(a7)
+	lea	_sMainState,a3
+	lea	_iCurrState,a4
+	moveq	#60,d3
+	;line	114
+	clr.l	d0
+	move.b	(a4),d0
+	move.l	d0,-(a7)
+	move.l	d3,-(a7)
+	jsr	.Xlmul
+	move.l	d0,a0
+	add.l	a3,a0
+	tst.b	57(a0)
+	beq	L25
+	;line	116
+	clr.w	-(a7)
+	clr.w	-(a7)
+	move.w	12(a6),-(a7)
+	move.l	8(a6),-(a7)
+	jsr	_render_Value
+	lea	10(a7),a7
+	;line	117
+	clr.l	d0
+	move.b	(a4),d0
+	move.l	d0,-(a7)
+	move.l	d3,-(a7)
+	jsr	.Xlmul
+	move.l	d0,a0
+	add.l	a3,a0
+	clr.b	57(a0)
+	bra	L26
+L25:
+	;line	119
+	clr.l	d0
+	move.b	(a4),d0
+	move.l	d0,-(a7)
+	move.l	d3,-(a7)
+	jsr	.Xlmul
+	move.l	d0,a0
+	add.l	a3,a0
+	tst.b	58(a0)
+	beq	L27
+	;line	121
+	move.w	#16,-(a7)
+	clr.w	-(a7)
+	move.w	#16,-(a7)
+	clr.w	-(a7)
+	move.l	8(a6),-(a7)
+	jsr	_clear_region
+	lea	12(a7),a7
+	;line	122
+	clr.l	d0
+	move.b	(a4),d0
+	move.l	d0,-(a7)
+	move.l	d3,-(a7)
+	jsr	.Xlmul
+	move.l	d0,a0
+	add.l	a3,a0
+	clr.b	58(a0)
+L27:
+L26:
+	movem.l	-12(a6),d3/a3/a4
 	unlk	a6
 	rts
 _render_Tetrimino:
 	link	a6,#-4
 	movem.l	d3/d4/d5,-(a7)
 	move.l	12(a6),d4
-	;line	89
+	;line	135
 	move.l	d4,a0
 	clr.w	d0
 	move.b	1(a0),d0
 	move.w	d0,d5
-	bge	L13
+	bge	L28
 	move.w	d5,d0
 	neg.w	d0
-	bra	L14
-L13:
+	bra	L29
+L28:
 	moveq	#0,d0
-L14:
+L29:
 	move.b	d0,d3
-	;line	89
+	;line	135
 	move.l	d4,-(a7)
 	jsr	_redrawTetrimino
 	addq.l	#4,a7
 	tst.b	d0
-	beq	L15
-	;line	91
+	beq	L30
+	;line	137
 	move.l	8(a6),-(a7)
 	jsr	_clear_Tetrimino
 	addq.l	#4,a7
-	;line	93
-	bra	L17
-L16:
-	;line	94
+	;line	139
+	bra	L32
+L31:
+	;line	140
 	clr.w	-(a7)
 	move.w	#1,-(a7)
 	moveq	#19,d0
@@ -306,17 +497,21 @@ L16:
 	move.l	8(a6),-(a7)
 	jsr	_render_Line
 	lea	12(a7),a7
-L19:
+L34:
 	addq.b	#1,d3
-L17:
+L32:
 	cmp.b	#4,d3
-	bcs	L16
-L18:
-	;line	100
+	bcs	L31
+L33:
+	;line	146
 	move.l	d4,-(a7)
-	pea	_sMainState
+	clr.w	d0
+	move.b	_iCurrState,d0
+	mulu	#60,d0
+	add.l	#_sMainState,d0
+	move.l	d0,-(a7)
 	jsr	_copyTetrimino
-L15:
+L30:
 	movem.l	-16(a6),d3/d4/d5
 	unlk	a6
 	rts
@@ -324,109 +519,136 @@ _redrawTetrimino:
 	link	a6,#-2
 	movem.l	d3/d4/a3,-(a7)
 	move.l	8(a6),a3
-	;line	113
-	move.b	_sMainState,d0
+	;line	159
+	clr.w	d0
+	move.b	_iCurrState,d0
+	mulu	#60,d0
+	move.l	d0,a0
+	add.l	#_sMainState,a0
+	move.b	(a0),d0
 	cmp.b	(a3),d0
 	sne	d0
 	and.w	#1,d0
 	move.b	d0,d3
-	;line	114
+	;line	160
 	tst.b	d3
-	bne	L22
-	move.b	_sMainState+1,d0
+	bne	L37
+	clr.w	d0
+	move.b	_iCurrState,d0
+	mulu	#60,d0
+	move.l	d0,a0
+	add.l	#_sMainState,a0
+	move.b	1(a0),d0
 	cmp.b	1(a3),d0
-	beq	L20
-L22:
+	beq	L35
+L37:
 	moveq	#1,d0
-	bra	L21
-L20:
+	bra	L36
+L35:
 	moveq	#0,d0
-L21:
+L36:
 	move.b	d0,d3
-	;line	116
+	;line	162
 	moveq	#0,d4
-	bra	L24
-L23:
-	;line	117
+	bra	L39
+L38:
+	;line	163
 	tst.b	d3
-	bne	L29
+	bne	L44
 	clr.l	d0
 	move.b	d4,d0
 	move.l	d0,a0
 	add.l	a0,a0
 	add.l	a3,a0
+	clr.w	d0
+	move.b	_iCurrState,d0
+	mulu	#60,d0
+	move.l	d0,a1
+	add.l	#_sMainState,a1
 	clr.l	d0
 	move.b	d4,d0
-	move.l	d0,a1
-	add.l	a1,a1
-	add.l	#_sMainState,a1
+	add.l	d0,d0
+	add.l	d0,a1
 	move.w	2(a1),d0
 	cmp.w	2(a0),d0
-	beq	L27
-L29:
+	beq	L42
+L44:
 	moveq	#1,d0
-	bra	L28
-L27:
+	bra	L43
+L42:
 	moveq	#0,d0
-L28:
+L43:
 	move.b	d0,d3
-L26:
+L41:
 	addq.b	#1,d4
-L24:
+L39:
 	cmp.b	#4,d4
-	bcs	L23
-L25:
-	;line	119
+	bcs	L38
+L40:
+	;line	165
 	move.b	d3,d0
-L30:
+L45:
 	movem.l	(a7)+,d3/d4/a3
 	unlk	a6
 	rts
 _clear_Tetrimino:
 	link	a6,#-4
 	movem.l	d3/d4,-(a7)
-	;line	130
+	;line	176
 	move.w	#320,d0
 	clr.w	d1
-	move.b	_sMainState+1,d1
+	move.b	_iCurrState,d1
+	mulu	#60,d1
+	move.l	d1,a0
+	add.l	#_sMainState,a0
+	clr.w	d1
+	move.b	1(a0),d1
 	addq.w	#1,d1
 	asl.w	#4,d1
 	sub.w	d1,d0
 	move.w	d0,d4
-	;line	130
+	;line	176
 	moveq	#0,d3
-	bra	L32
-L31:
-	;line	132
+	bra	L47
+L46:
+	;line	178
+	clr.w	d0
+	move.b	_iCurrState,d0
+	mulu	#60,d0
+	move.l	d0,a0
+	add.l	#_sMainState,a0
 	clr.l	d0
 	move.b	d3,d0
-	move.l	d0,a0
-	add.l	a0,a0
-	add.l	#_sMainState,a0
+	add.l	d0,d0
+	add.l	d0,a0
 	tst.w	2(a0)
-	beq	L35
-	;line	134
+	beq	L50
+	;line	180
 	clr.w	-(a7)
 	clr.w	-(a7)
 	move.w	d4,-(a7)
+	clr.w	d0
+	move.b	_iCurrState,d0
+	mulu	#60,d0
+	move.l	d0,a0
+	add.l	#_sMainState,a0
 	clr.l	d0
 	move.b	d3,d0
-	move.l	d0,a0
-	add.l	a0,a0
-	add.l	#_sMainState,a0
+	add.l	d0,d0
+	add.l	d0,a0
 	move.w	2(a0),-(a7)
 	move.l	8(a6),-(a7)
 	jsr	_render_Line
 	lea	12(a7),a7
-L35:
-	;line	138
+L50:
+	;line	184
 	add.w	#16,d4
-L34:
+L49:
 	addq.b	#1,d3
-L32:
+L47:
 	cmp.b	#4,d3
-	bcs	L31
-L33:
+	bcs	L46
+L48:
 	movem.l	-12(a6),d3/d4
 	unlk	a6
 	rts
@@ -435,31 +657,31 @@ _render_Line:
 	movem.l	d3/d4/d5/d6/d7,-(a7)
 	move.w	14(a6),d3
 	moveq	#16,d7
-	;line	162
+	;line	208
 	move.w	#384,d4
-	;line	162
+	;line	208
 	tst.w	d3
-	blt	L36
+	blt	L51
 	cmp.w	#400,d3
-	bge	L36
-	;line	164
+	bge	L51
+	;line	210
 	move.w	d3,d0
 	add.w	d7,d0
 	move.w	d0,-6(a6)
-	;line	165
+	;line	211
 	moveq	#0,d6
-	bra	L38
-L37:
-	;line	167
+	bra	L53
+L52:
+	;line	213
 	move.w	12(a6),d0
 	and.w	#1,d0
 	move.b	d0,d5
-	;line	169
+	;line	215
 	tst.b	17(a6)
-	beq	L41
+	beq	L56
 	tst.b	d5
-	beq	L41
-	;line	171
+	beq	L56
+	;line	216
 	move.w	d7,-(a7)
 	pea	L4
 	move.w	d3,-(a7)
@@ -467,15 +689,15 @@ L37:
 	move.l	8(a6),-(a7)
 	jsr	_draw_bitmap_16
 	lea	14(a7),a7
-	bra	L42
-L41:
-	;line	176
+	bra	L57
+L56:
+	;line	221
 	tst.b	19(a6)
-	bne	L44
+	bne	L59
 	tst.b	d5
-	beq	L43
-L44:
-	;line	177
+	beq	L58
+L59:
+	;line	222
 	move.w	-6(a6),-(a7)
 	move.w	d3,-(a7)
 	move.w	d4,d0
@@ -485,21 +707,21 @@ L44:
 	move.l	8(a6),-(a7)
 	jsr	_clear_region
 	lea	12(a7),a7
-L43:
-L42:
-	;line	182
+L58:
+L57:
+	;line	227
 	move.w	12(a6),d0
 	lsr.w	#1,d0
 	move.w	d0,12(a6)
-	;line	183
+	;line	228
 	sub.w	d7,d4
-L40:
+L55:
 	addq.w	#1,d6
-L38:
+L53:
 	cmp.w	#10,d6
-	bcs	L37
-L39:
-L36:
+	bcs	L52
+L54:
+L51:
 	movem.l	-28(a6),d3/d4/d5/d6/d7
 	unlk	a6
 	rts
@@ -508,27 +730,17 @@ _render_Board:
 	movem.l	d3/d4,-(a7)
 	move.l	8(a6),d3
 	move.l	12(a6),d4
-	;line	196
-	tst.b	62+_sMainState
-	bne	L45
-	;line	198
-	move.l	d3,-(a7)
-	jsr	_render_Static
-	addq.l	#4,a7
-	;line	199
-	move.b	#1,62+_sMainState
-L45:
-	;line	204
+	;line	240
 	move.l	d4,-(a7)
 	move.l	d3,-(a7)
 	jsr	_fill_Board
 	addq.l	#8,a7
-	;line	206
+	;line	242
 	move.l	d4,-(a7)
 	move.l	d3,-(a7)
 	jsr	_render_Next_Tetrimino
 	addq.l	#8,a7
-	;line	208
+	;line	244
 	move.l	d4,-(a7)
 	move.l	d3,-(a7)
 	jsr	_render_Status
@@ -539,25 +751,29 @@ _fill_Board:
 	link	a6,#-4
 	movem.l	d3/d4/a3,-(a7)
 	move.l	12(a6),a3
-	;line	219
+	;line	255
 	move.w	#304,d4
 	moveq	#0,d3
-	;line	219
-	bra	L47
-L46:
-	;line	222
+	;line	255
+	bra	L61
+L60:
+	;line	258
 	clr.l	d0
 	move.b	d3,d0
 	add.l	d0,d0
+	clr.w	d1
+	move.b	_iCurrState,d1
+	mulu	#60,d1
+	move.l	d1,a0
+	add.l	#_sMainState,a0
 	clr.l	d1
 	move.b	d3,d1
-	move.l	d1,a0
-	add.l	a0,a0
-	add.l	#_sMainState,a0
+	add.l	d1,d1
+	add.l	d1,a0
 	move.w	10(a0),d1
 	cmp.w	0(a3,d0.l),d1
-	beq	L49
-	;line	224
+	beq	L63
+	;line	260
 	move.w	#1,-(a7)
 	move.w	#1,-(a7)
 	move.w	d4,-(a7)
@@ -568,38 +784,46 @@ L46:
 	move.l	8(a6),-(a7)
 	jsr	_render_Line
 	lea	12(a7),a7
-	;line	229
+	;line	265
 	clr.l	d0
 	move.b	d3,d0
 	add.l	d0,d0
+	clr.w	d1
+	move.b	_iCurrState,d1
+	mulu	#60,d1
+	move.l	d1,a0
+	add.l	#_sMainState,a0
 	clr.l	d1
 	move.b	d3,d1
-	move.l	d1,a0
-	add.l	a0,a0
-	add.l	#_sMainState,a0
+	add.l	d1,d1
+	add.l	d1,a0
 	move.w	0(a3,d0.l),10(a0)
-L49:
-	;line	231
+L63:
+	;line	267
 	addq.b	#1,d3
-	;line	232
+	;line	268
 	sub.w	#16,d4
-L47:
+L61:
 	cmp.b	#20,d3
-	bcc	L50
+	bcc	L64
 	clr.l	d0
 	move.b	d3,d0
 	add.l	d0,d0
 	tst.w	0(a3,d0.l)
-	bne	L46
+	bne	L60
+	clr.w	d0
+	move.b	_iCurrState,d0
+	mulu	#60,d0
+	move.l	d0,a0
+	add.l	#_sMainState,a0
 	clr.l	d0
 	move.b	d3,d0
-	move.l	d0,a0
-	add.l	a0,a0
-	add.l	#_sMainState,a0
+	add.l	d0,d0
+	add.l	d0,a0
 	tst.w	10(a0)
-	bne	L46
-L50:
-L48:
+	bne	L60
+L64:
+L62:
 	movem.l	-16(a6),d3/d4/a3
 	unlk	a6
 	rts
@@ -607,15 +831,20 @@ _render_Next_Tetrimino:
 	link	a6,#-10
 	movem.l	d3/d4/d5/d6/d7/a3,-(a7)
 	move.l	12(a6),a3
-	;line	247
+	;line	283
 	move.w	#464,-4(a6)
 	move.w	-4(a6),d4
 	moveq	#32,d7
-	;line	247
-	move.b	58+_sMainState,d0
+	;line	283
+	clr.w	d0
+	move.b	_iCurrState,d0
+	mulu	#60,d0
+	move.l	d0,a0
+	add.l	#_sMainState,a0
+	move.b	56(a0),d0
 	cmp.b	48(a3),d0
-	beq	L51
-	;line	249
+	beq	L65
+	;line	285
 	move.w	#96,-(a7)
 	move.w	#32,-(a7)
 	move.w	#480,-(a7)
@@ -623,11 +852,11 @@ _render_Next_Tetrimino:
 	move.l	8(a6),-(a7)
 	jsr	_clear_region
 	lea	12(a7),a7
-	;line	255
+	;line	291
 	moveq	#0,d3
-	bra	L53
-L52:
-	;line	257
+	bra	L67
+L66:
+	;line	293
 	clr.l	d0
 	move.b	48(a3),d0
 	asl.l	#2,d0
@@ -637,15 +866,15 @@ L52:
 	move.b	d3,d0
 	add.l	d0,a0
 	move.b	(a0),d6
-	;line	258
+	;line	294
 	moveq	#0,d5
-	bra	L57
-L56:
-	;line	260
+	bra	L71
+L70:
+	;line	296
 	moveq	#1,d0
 	and.b	d6,d0
-	beq	L60
-	;line	261
+	beq	L74
+	;line	297
 	move.w	#16,-(a7)
 	pea	L4
 	move.w	d7,-(a7)
@@ -653,86 +882,136 @@ L56:
 	move.l	8(a6),-(a7)
 	jsr	_draw_bitmap_16
 	lea	14(a7),a7
-L60:
-	;line	265
+L74:
+	;line	301
 	lsr.b	#1,d6
-	;line	266
+	;line	302
 	sub.w	#16,d4
-L59:
+L73:
 	addq.b	#1,d5
-L57:
+L71:
 	cmp.b	#4,d5
-	bcs	L56
-L58:
-	;line	268
+	bcs	L70
+L72:
+	;line	304
 	move.w	-4(a6),d4
-	;line	269
+	;line	305
 	add.w	#16,d7
-L55:
+L69:
 	addq.b	#1,d3
-L53:
+L67:
 	cmp.b	#4,d3
-	bcs	L52
-L54:
-	;line	272
-	move.b	48(a3),58+_sMainState
-L51:
+	bcs	L66
+L68:
+	;line	308
+	clr.w	d0
+	move.b	_iCurrState,d0
+	mulu	#60,d0
+	move.l	d0,a0
+	add.l	#_sMainState,a0
+	move.b	48(a3),56(a0)
+L65:
 	movem.l	-34(a6),d3/d4/d5/d6/d7/a3
 	unlk	a6
 	rts
 _render_Status:
 	link	a6,#0
-	movem.l	d3/a3/a4,-(a7)
+	movem.l	d3/d4/a3/a4/a5,-(a7)
 	move.l	12(a6),a3
 	lea	_sMainState,a4
-	move.l	8(a6),d3
-	;line	279
+	lea	_iCurrState,a5
+	moveq	#60,d3
+	move.l	8(a6),d4
+	;line	321
+	clr.l	d0
+	move.b	(a5),d0
+	move.l	d0,-(a7)
+	move.l	d3,-(a7)
+	jsr	.Xlmul
+	move.l	d0,a0
+	add.l	a4,a0
 	move.w	40(a3),d0
-	cmp.w	50(a4),d0
-	beq	L61
-	;line	281
+	cmp.w	50(a0),d0
+	beq	L75
+	;line	323
 	move.w	#113,-(a7)
 	move.w	#528,-(a7)
 	move.w	40(a3),-(a7)
-	move.l	d3,-(a7)
+	move.l	d4,-(a7)
 	jsr	_render_Value
 	lea	10(a7),a7
-	;line	282
-	move.w	40(a3),50(a4)
-L61:
-	;line	286
+	;line	324
+	clr.l	d0
+	move.b	(a5),d0
+	move.l	d0,-(a7)
+	move.l	d3,-(a7)
+	jsr	.Xlmul
+	move.l	d0,a0
+	add.l	a4,a0
+	move.w	40(a3),50(a0)
+L75:
+	;line	328
+	clr.l	d0
+	move.b	(a5),d0
+	move.l	d0,-(a7)
+	move.l	d3,-(a7)
+	jsr	.Xlmul
+	move.l	d0,a0
+	add.l	a4,a0
 	move.w	44(a3),d0
-	cmp.w	54(a4),d0
-	beq	L62
-	;line	288
+	cmp.w	54(a0),d0
+	beq	L76
+	;line	330
 	move.w	#134,-(a7)
 	move.w	#528,-(a7)
 	move.w	44(a3),d0
 	addq.w	#1,d0
 	move.w	d0,-(a7)
-	move.l	d3,-(a7)
+	move.l	d4,-(a7)
 	jsr	_render_Value
 	lea	10(a7),a7
-	;line	289
-	move.w	44(a3),54(a4)
-L62:
-	;line	293
+	;line	331
+	clr.l	d0
+	move.b	(a5),d0
+	move.l	d0,-(a7)
+	move.l	d3,-(a7)
+	jsr	.Xlmul
+	move.l	d0,a0
+	add.l	a4,a0
+	move.w	44(a3),54(a0)
+L76:
+	;line	335
+	clr.l	d0
+	move.b	(a5),d0
+	move.l	d0,-(a7)
+	move.l	d3,-(a7)
+	jsr	.Xlmul
+	move.l	d0,a0
+	add.l	a4,a0
 	move.w	42(a3),d0
-	cmp.w	52(a4),d0
-	beq	L63
-	;line	295
+	cmp.w	52(a0),d0
+	beq	L77
+	;line	337
 	move.w	#155,-(a7)
 	move.w	#528,-(a7)
 	move.w	42(a3),-(a7)
-	move.l	d3,-(a7)
+	move.l	d4,-(a7)
 	jsr	_render_Value
-	;line	296
-	move.w	42(a3),52(a4)
-L63:
-	movem.l	-12(a6),d3/a3/a4
+	lea	10(a7),a7
+	;line	338
+	clr.l	d0
+	move.b	(a5),d0
+	move.l	d0,-(a7)
+	move.l	d3,-(a7)
+	jsr	.Xlmul
+	move.l	d0,a0
+	add.l	a4,a0
+	move.w	42(a3),52(a0)
+L77:
+	movem.l	-20(a6),d3/d4/a3/a4/a5
 	unlk	a6
 	rts
-L64:
+L78:
 	dc.b	0,0,0,0,0,0,0,0,0,0,0,0
 	dc.b	0,0,0,0,0,0,0,0,0,0,0,0
 	dc.b	0,0,0,0,0,0,0,0,0,0,0,0
@@ -758,19 +1037,19 @@ L64:
 	even
 _render_Value:
 	link	a6,#-256
-	;line	304
-	lea	L64,a0
+	;line	350
+	lea	L78,a0
 	lea	-255(a6),a1
 	move.w	#254,d0
-L65:
+L79:
 	move.b	(a0)+,(a1)+
-	dbra	d0,L65
-	;line	304
+	dbra	d0,L79
+	;line	350
 	move.w	12(a6),-(a7)
 	pea	-255(a6)
 	jsr	_WToStr
 	addq.l	#6,a7
-	;line	306
+	;line	352
 	move.w	16(a6),-(a7)
 	move.w	14(a6),-(a7)
 	pea	-255(a6)
@@ -778,14 +1057,14 @@ L65:
 	jsr	_render_String
 	unlk	a6
 	rts
-L69:
+L83:
 	dc.b	76,73,78,69,83,32,67,76,69,65,82,69
 	dc.b	68,58,32,0
-L68:
+L82:
 	dc.b	76,69,86,69,76,58,32,0
-L67:
+L81:
 	dc.b	83,67,79,82,69,58,32,0
-L66:
+L80:
 	dc.b	78,69,88,84,58,0
 	even
 _render_Static:
@@ -796,180 +1075,189 @@ _render_Static:
 	lea	_plot_v_line,a4
 	lea	_render_String,a5
 	move.w	#401,d4
-	;line	312
+	;line	362
 	move.l	d3,-(a7)
 	jsr	_clear_Screen
 	addq.l	#4,a7
-	;line	315
+	;line	365
 	move.w	#321,-(a7)
 	clr.w	-(a7)
 	move.w	#239,-(a7)
 	move.l	d3,-(a7)
 	jsr	(a4)
 	lea	10(a7),a7
-	;line	316
+	;line	366
 	move.w	#321,-(a7)
 	clr.w	-(a7)
 	move.w	d4,-(a7)
 	move.l	d3,-(a7)
 	jsr	(a4)
 	lea	10(a7),a7
-	;line	317
+	;line	367
 	move.w	#321,-(a7)
 	move.w	d4,-(a7)
 	move.w	#239,-(a7)
 	move.l	d3,-(a7)
 	jsr	(a3)
 	lea	10(a7),a7
-	;line	323
+	;line	373
 	move.w	#16,-(a7)
 	move.w	#432,-(a7)
-	pea	L66
+	pea	L80
 	move.l	d3,-(a7)
 	jsr	(a5)
 	lea	12(a7),a7
-	;line	327
+	;line	377
 	move.w	#113,-(a7)
 	move.w	#408,-(a7)
-	pea	L67
+	pea	L81
 	move.l	d3,-(a7)
 	jsr	(a5)
 	lea	12(a7),a7
-	;line	331
+	;line	381
 	move.w	#134,-(a7)
 	move.w	#408,-(a7)
-	pea	L68
+	pea	L82
 	move.l	d3,-(a7)
 	jsr	(a5)
 	lea	12(a7),a7
-	;line	335
+	;line	385
 	move.w	#155,-(a7)
 	move.w	#408,-(a7)
-	pea	L69
+	pea	L83
 	move.l	d3,-(a7)
 	jsr	(a5)
 	lea	12(a7),a7
-	;line	341
+	;line	391
 	move.w	#16,-(a7)
 	move.w	#496,-(a7)
 	move.w	d4,-(a7)
 	move.l	d3,-(a7)
 	jsr	(a3)
 	lea	10(a7),a7
-	;line	345
+	;line	395
 	move.w	#31,-(a7)
 	move.w	#480,-(a7)
 	move.w	#416,-(a7)
 	move.l	d3,-(a7)
 	jsr	(a3)
 	lea	10(a7),a7
-	;line	349
+	;line	399
 	move.w	#96,-(a7)
 	move.w	#32,-(a7)
 	move.w	#415,-(a7)
 	move.l	d3,-(a7)
 	jsr	(a4)
 	lea	10(a7),a7
-	;line	353
+	;line	403
 	move.w	#96,-(a7)
 	move.w	#32,-(a7)
 	move.w	#481,-(a7)
 	move.l	d3,-(a7)
 	jsr	(a4)
 	lea	10(a7),a7
-	;line	357
+	;line	407
 	move.w	#112,-(a7)
 	move.w	#16,-(a7)
 	move.w	#496,-(a7)
 	move.l	d3,-(a7)
 	jsr	(a4)
 	lea	10(a7),a7
-	;line	361
+	;line	411
 	move.w	#112,-(a7)
 	move.w	#496,-(a7)
 	move.w	d4,-(a7)
 	move.l	d3,-(a7)
 	jsr	(a3)
 	lea	10(a7),a7
-	;line	365
+	;line	415
 	move.w	#97,-(a7)
 	move.w	#480,-(a7)
 	move.w	#416,-(a7)
 	move.l	d3,-(a7)
 	jsr	(a3)
-	;line	370
-	move.b	#1,62+_sMainState
 	movem.l	-20(a6),d3/d4/a3/a4/a5
 	unlk	a6
 	rts
 _render_All:
 	link	a6,#0
-	;line	379
+	move.l	d3,-(a7)
+	move.l	8(a6),d3
+	;line	428
+	moveq	#1,d0
+	clr.w	d1
+	move.b	_iCurrState,d1
+	sub.w	d1,d0
+	move.b	d0,_iCurrState
+	;line	429
 	move.l	12(a6),-(a7)
-	move.l	8(a6),-(a7)
+	move.l	d3,-(a7)
 	jsr	_render_Tetrimino
 	addq.l	#8,a7
-	;line	380
+	;line	430
 	move.l	12(a6),d0
 	add.l	#10,d0
 	move.l	d0,-(a7)
-	move.l	8(a6),-(a7)
+	move.l	d3,-(a7)
 	jsr	_render_Board
+	addq.l	#8,a7
+	;line	431
+	move.w	16(a6),-(a7)
+	move.l	d3,-(a7)
+	jsr	_render_FPS
+	move.l	-4(a6),d3
 	unlk	a6
 	rts
 _render_String:
 	link	a6,#-6
 	movem.l	d3/d4/d5/d6/a3,-(a7)
 	move.l	12(a6),a3
-	;line	393
+	;line	444
 	move.w	16(a6),d4
 	move.w	18(a6),d6
 	moveq	#0,d3
 	moveq	#0,d5
-	;line	393
-	bra	L71
-L70:
-	;line	395
+	;line	444
+	bra	L85
+L84:
+	;line	446
 	clr.l	d0
 	move.b	d3,d0
 	cmp.b	#10,0(a3,d0.l)
-	bne	L73
-	;line	396
+	bne	L87
+	;line	447
 	moveq	#1,d5
-	bra	L74
-L73:
-	;line	397
+	bra	L88
+L87:
+	;line	448
 	clr.l	d0
 	move.b	d3,d0
 	cmp.b	#9,0(a3,d0.l)
-	bne	L75
-L76:
-L77:
-	;line	399
+	bne	L89
+L90:
+L91:
+	;line	450
 	addq.w	#8,d4
-	clr.l	d0
 	move.w	d4,d0
-	divu	#31,d0
-	swap	d0
-	tst.w	d0
-	bne	L76
-L78:
-	;line	401
+	and.w	#31,d0
+	bne	L90
+L92:
+	;line	452
 	cmp.w	#640,d4
-	bcs	L79
-	;line	402
+	bcs	L93
+	;line	453
 	moveq	#1,d5
-L79:
-	bra	L80
-L75:
-	;line	404
+L93:
+	bra	L94
+L89:
+	;line	455
 	clr.l	d0
 	move.b	d3,d0
 	move.b	0(a3,d0.l),d0
 	ext.w	d0
 	cmp.w	#128,d0
-	bge	L81
-	;line	405
+	bge	L95
+	;line	456
 	move.w	#16,-(a7)
 	clr.l	d0
 	move.b	d3,d0
@@ -984,9 +1272,9 @@ L75:
 	move.l	8(a6),-(a7)
 	jsr	_draw_bitmap_8
 	lea	14(a7),a7
-	bra	L82
-L81:
-	;line	407
+	bra	L96
+L95:
+	;line	458
 	move.w	#16,-(a7)
 	pea	L1
 	move.w	d6,-(a7)
@@ -994,40 +1282,40 @@ L81:
 	move.l	8(a6),-(a7)
 	jsr	_draw_bitmap_8
 	lea	14(a7),a7
-L82:
-L80:
-L74:
-	;line	409
+L96:
+L94:
+L88:
+	;line	460
 	tst.b	d5
-	beq	L83
-	;line	411
+	beq	L97
+	;line	462
 	move.w	16(a6),d4
-	;line	412
+	;line	463
 	add.w	#16,d6
-	;line	413
+	;line	464
 	moveq	#0,d5
-	bra	L84
-L83:
-	;line	416
+	bra	L98
+L97:
+	;line	467
 	addq.w	#8,d4
-L84:
-	;line	418
+L98:
+	;line	469
 	addq.b	#1,d3
-L71:
+L85:
 	cmp.b	#255,d3
-	bcc	L85
+	bcc	L99
 	clr.l	d0
 	move.b	d3,d0
 	tst.b	0(a3,d0.l)
-	bne	L70
-L85:
-L72:
+	bne	L84
+L99:
+L86:
 	movem.l	-26(a6),d3/d4/d5/d6/a3
 	unlk	a6
 	rts
 _clear_Screen:
 	link	a6,#0
-	;line	427
+	;line	478
 	move.w	#400,-(a7)
 	clr.w	-(a7)
 	move.w	#640,-(a7)
@@ -1035,7 +1323,7 @@ _clear_Screen:
 	move.l	8(a6),-(a7)
 	jsr	_clear_region
 	lea	12(a7),a7
-	;line	428
+	;line	479
 	jsr	_reset_Rend_State
 	unlk	a6
 	rts
@@ -1043,14 +1331,18 @@ _clear_Screen:
 	globl	_render_Board
 	globl	_render_All
 	globl	_render_String
+	globl	_flag_FPS_Rend
+	globl	_flag_FPS_Clear
+	globl	_render_Static
 	globl	_clear_Screen
 	globl	_render_Line
 	globl	_redrawTetrimino
 	globl	_clear_Tetrimino
-	globl	_render_Value
-	globl	_render_Static
 	globl	_render_Status
+	globl	_render_Value
 	globl	_fill_Board
 	globl	_render_Next_Tetrimino
+	globl	_render_FPS
 	globl	_sMainState
+	globl	_iCurrState
 	globl	_reset_Rend_State

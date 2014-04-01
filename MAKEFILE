@@ -10,6 +10,9 @@ tst_rend: tst_rend.o renderer.o rend_asm.o raster.o model.o mod_asm.o
 tst_inp: tst_inp.o
 	cc68x -g tst_inp.o -o tst_inpt
 
+tst_psg: tst_psg.o music.o psg.o input.o sfx.o
+	cc68x -g tst_psg.o music.o psg.o input.o sfx.o -o tst_psg
+
 tst_inp.o: tst_inp.c
 	cc68x -g -c tst_inp.c
 
@@ -18,9 +21,12 @@ tst_rend.o: tst_rend.c renderer.h model.h
 
 tst_mod.o: tst_mod.c model.h
 	cc68x -g -c tst_mod.c
+
+tst_psg.o: tst_psg.c music.h psg.h renderer.h input.h
+	cc68x -g -c tst_psg.c
 	
-tetris: tet_main.o model.o renderer.o rend_asm.o tvnt_hnd.o input.o raster.o mod_asm.o 
-	cc68x -g tet_main.o model.o renderer.o rend_asm.o tvnt_hnd.o input.o raster.o mod_asm.o -o tetris
+tetris: tet_main.o model.o renderer.o rend_asm.o tvnt_hnd.o input.o raster.o mod_asm.o music.o sfx.o psg.o
+	cc68x -g tet_main.o model.o renderer.o rend_asm.o tvnt_hnd.o input.o raster.o mod_asm.o music.o sfx.o psg.o -o tetris
 	
 tet_main.o: tet_main.c
 	cc68x -g -c tet_main.c
@@ -33,6 +39,12 @@ input.o: input.h input.c
 
 model.o: model.c model.h
 	cc68x -g -c model.c
+
+music.o: music.c music.h psg.h
+	cc68x -g -c music.c
+
+psg.o: psg.c psg.h
+	cc68x -g -c psg.c
 
 mod_asm.o: mod_asm.s
 	gen -D -L2 mod_asm.s
@@ -48,6 +60,9 @@ renderer.o: renderer.c renderer.h
 
 rend_asm.o: rend_asm.s
 	gen -D -L2 rend_asm.s
+
+sfx.o: sfx.c
+	cc68x -g -c sfx.c
 	
 all:
 	make clean
@@ -68,6 +83,10 @@ rend_all:
 input_all:
 	make clean
 	make tst_inp
+
+psg_all:
+	make clean
+	make tst_psg
 	
 clean:
 	$(RM) -f tst_rast tst_rend tst_inp tst_mod tetris *.o

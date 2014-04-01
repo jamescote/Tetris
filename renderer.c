@@ -21,52 +21,43 @@ void render_Line( UINT16* fbBase16,
 bool redrawTetrimino( const Tetrimino* m_CurrTetrimino );
 void clear_Tetrimino( UINT16* fbBase16 );
 void WToStr( char* cReturnString, UINT16 iValue );
-void render_Value( UINT8* fbBase8, UINT16 iValue, UINT16 iXPxlPos, UINT16 iYPxlPos );
-void render_Static( UINT16* fbBase16 );
 void render_Status( UINT8* fbBase8, const Game_Board* m_Board );
+void render_Value( UINT8* fbBase8, UINT16 iValue, UINT16 iXPxlPos, UINT16 iYPxlPos );
 void fill_Board( UINT16* fbBase16, const Game_Board* m_Board );
 void render_Next_Tetrimino( UINT16* fbBase16, const Game_Board* m_Board );
+void render_FPS( UINT8* fbBase8, int iValue );
 				  
 /* Private Variables */
 struct sRendState
 {
 	Tetrimino m_TetriState;
-	Game_Board m_BoardState;
-	bool bInitialDrawn;
+	UINT16 BoardRendMap[ BOARD_HEIGHT ];
+	UINT16 iRendScore, iRendLns_Clrd, iRendLvl;
+	UINT8 iRendNxtPiece;
+	bool bRenderFPS;
+	bool bClearFPS;
 } sMainState[ 2 ] = 
 { 
 	{
 		{{0}, {0}},
-		{{0},GARBAGE_INPUT_16,
-			 GARBAGE_INPUT_16,
-			 GARBAGE_INPUT_16,
-			 GARBAGE_INPUT_8,
-			 GARBAGE_INPUT_8,
-			 GARBAGE_INPUT_8,
-			 GARBAGE_INPUT_8,
-			 GARBAGE_INPUT_8 },
-		false
+		{0},
+		GARBAGE_INPUT_16,
+		GARBAGE_INPUT_16,
+		GARBAGE_INPUT_16,
+		GARBAGE_INPUT_8
 	},
 	{
 		{{0}, {0}},
-		{{0},GARBAGE_INPUT_16,
-			 GARBAGE_INPUT_16,
-			 GARBAGE_INPUT_16,
-			 GARBAGE_INPUT_8,
-			 GARBAGE_INPUT_8,
-			 GARBAGE_INPUT_8,
-			 GARBAGE_INPUT_8,
-			 GARBAGE_INPUT_8 },
-		false
+		{0},
+		GARBAGE_INPUT_16,
+		GARBAGE_INPUT_16,
+		GARBAGE_INPUT_16,
+		GARBAGE_INPUT_8
 	}
 };
 UINT8 iCurrState = FRONT_STATE;
-	
-
 
 /* Function Implementation */
-
-
 /*
 	Resets the Rend State to it's starting value
 */
@@ -84,14 +75,51 @@ void reset_Rend_State( )
 			
 		/* Reset Game Board */
 		for( i = 0; i < BOARD_HEIGHT; i++ )
-			sMainState[ j ].m_BoardState.BoardMap[ i ] = 0;
-		sMainState[ j ].m_BoardState.iScore 			= GARBAGE_INPUT_16;
-		sMainState[ j ].m_BoardState.iLns_Clrd 		= GARBAGE_INPUT_16;
-		sMainState[ j ].m_BoardState.iLvl			= GARBAGE_INPUT_16;
-		sMainState[ j ].m_BoardState.nxtPiece		= GARBAGE_INPUT_8;
-		
-		/* Reset Inital Drawn Flag */
-		sMainState[ j ].bInitialDrawn				= false;
+			sMainState[ j ].BoardRendMap[ i ] = 0;
+		sMainState[ j ].iRendScore 		= GARBAGE_INPUT_16;
+		sMainState[ j ].iRendLns_Clrd 		= GARBAGE_INPUT_16;
+		sMainState[ j ].iRendLvl			= GARBAGE_INPUT_16;
+		sMainState[ j ].iRendNxtPiece		= GARBAGE_INPUT_8;
+	}
+}
+
+/*
+	Sets a flag so that, on the next render, a new FPS will be rendered.
+*/
+void flag_FPS_Rend( )
+{
+	UINT8 i;
+	
+	for( i = 0; i <= BACK_STATE; i++ )
+		sMainState[ i ].bRenderFPS = true;
+}
+
+/*
+	Sets a flag to clear the FPS on the next render
+*/
+void flag_FPS_Clear( )
+{
+	UINT8 i;
+	
+	for( i = 0; i <= BACK_STATE; i++ )
+		sMainState[ i ].bClearFPS = true;
+}
+
+/*
+	Draws the FPS in the top left corner of the screen
+	or clears it based on the FPS render flags.
+*/
+void render_FPS( UINT8* fbBase8, int iValue )
+{
+	if( sMainState[ iCurrState ].bRenderFPS )
+	{
+		render_Value( fbBase8, iValue, 0, 0 );
+		sMainState[ iCurrState ].bRenderFPS = false;
+	}
+	else if( sMainState[ iCurrState ].bClearFPS )
+	{
+		clear_region( (UINT16*)fbBase8, 0, TEXT_WIDTH << 1, 0, TEXT_HEIGHT );
+		sMainState[ iCurrState ].bClearFPS = false;
 	}
 }
 
@@ -185,7 +213,6 @@ void render_Line( UINT16* fbBase16,
 			bActiveBit = (iMap & (TETRI_MAP_BASE - 1));
 			
 			if( bDrawFlag && bActiveBit ) 
-				/*draw_square( fbBase16, iXPxlPos, iYPxlPos );*/
 				draw_bitmap_16( fbBase16,
 								iXPxlPos,
 								iYPxlPos,
@@ -209,23 +236,12 @@ void render_Line( UINT16* fbBase16,
 */
 void render_Board( UINT16* fbBase16, 
 				   const Game_Board* m_Board )
-{	
-	/* Draw Borders */
-	if( !sMainState[ iCurrState ].bInitialDrawn )
-	{
-		render_Static( fbBase16 );
-		sMainState[ iCurrState ].bInitialDrawn = true;
-	}
-	
-	
-	/* Fill Board */
+{		
 	fill_Board( fbBase16, m_Board );
 	
 	render_Next_Tetrimino( fbBase16, m_Board );
 	
 	render_Status( (UINT8*)fbBase16, m_Board );
-	
-	iCurrState = !iCurrState;
 }
 
 /*
@@ -237,16 +253,16 @@ void fill_Board( UINT16* fbBase16, const Game_Board* m_Board )
 	UINT8 i = 0;
 	
 	while( i < BOARD_HEIGHT && 
-		   ( m_Board->BoardMap[ i ] != 0 || sMainState[ iCurrState ].m_BoardState.BoardMap[ i ] != 0 ) )
+		   ( m_Board->BoardMap[ i ] != 0 || sMainState[ iCurrState ].BoardRendMap[ i ] != 0 ) )
 	{
-		if( m_Board->BoardMap[ i ] != sMainState[ iCurrState ].m_BoardState.BoardMap[ i ] )
+		if( m_Board->BoardMap[ i ] != sMainState[ iCurrState ].BoardRendMap[ i ] )
 		{
 			render_Line( fbBase16, 
 						 m_Board->BoardMap[ i ], 
 						 iYPxlPos,
 						 LINE_DRAW,
 						 true );
-			sMainState[ iCurrState ].m_BoardState.BoardMap[ i ] = m_Board->BoardMap[ i ];
+			sMainState[ iCurrState ].BoardRendMap[ i ] = m_Board->BoardMap[ i ];
 		}
 		i++;
 		iYPxlPos -= MINO_SIZE;
@@ -264,7 +280,7 @@ void render_Next_Tetrimino( UINT16* fbBase16, const Game_Board* m_Board )
 	UINT16 iYPxlPos = NEXT_TET_TOP_BORDER_Y;
 	UINT8 i, j;
 	
-	if( m_Board->nxtPiece != sMainState[ iCurrState ].m_BoardState.nxtPiece )
+	if( m_Board->nxtPiece != sMainState[ iCurrState ].iRendNxtPiece )
 	{	
 		clear_region( fbBase16,
 					  NEXT_TET_LEFT_BORDER_X,
@@ -289,34 +305,44 @@ void render_Next_Tetrimino( UINT16* fbBase16, const Game_Board* m_Board )
 			iYPxlPos += MINO_SIZE;
 		}
 		
-		sMainState[ iCurrState ].m_BoardState.nxtPiece = m_Board->nxtPiece;
+		sMainState[ iCurrState ].iRendNxtPiece = m_Board->nxtPiece;
 	}
 }
 
+/*
+	renders the values that are shown to the user:
+		- Score
+		- Level
+		- Lines Cleared
+*/
 void render_Status( UINT8* fbBase8, const Game_Board* m_Board )
 {
 	/* Score Value */
-	if( m_Board->iScore != sMainState[ iCurrState ].m_BoardState.iScore )
+	if( m_Board->iScore != sMainState[ iCurrState ].iRendScore )
 	{
 		render_Value( fbBase8, m_Board->iScore, VALUE_X_POS, SCORE_Y_POS );
-		sMainState[ iCurrState ].m_BoardState.iScore = m_Board->iScore;
+		sMainState[ iCurrState ].iRendScore = m_Board->iScore;
 	}
 	
 	/* Level Value */
-	if( m_Board->iLvl != sMainState[ iCurrState ].m_BoardState.iLvl )
+	if( m_Board->iLvl != sMainState[ iCurrState ].iRendLvl )
 	{
 		render_Value( fbBase8, m_Board->iLvl + 1, VALUE_X_POS, LEVEL_Y_POS );
-		sMainState[ iCurrState ].m_BoardState.iLvl = m_Board->iLvl;
+		sMainState[ iCurrState ].iRendLvl = m_Board->iLvl;
 	}
 	
 	/* Lines Cleared Value */
-	if( m_Board->iLns_Clrd != sMainState[ iCurrState ].m_BoardState.iLns_Clrd )
+	if( m_Board->iLns_Clrd != sMainState[ iCurrState ].iRendLns_Clrd )
 	{
 		render_Value( fbBase8, m_Board->iLns_Clrd, VALUE_X_POS, LNS_CLRD_Y_POS );
-		sMainState[ iCurrState ].m_BoardState.iLns_Clrd = m_Board->iLns_Clrd;
+		sMainState[ iCurrState ].iRendLns_Clrd = m_Board->iLns_Clrd;
 	}
 }
 
+/* 
+	Takes in a 16-bit unsigned word value and draws it
+	to a specified area on the screen.
+*/
 void render_Value( UINT8* fbBase8, UINT16 iValue, UINT16 iXPxlPos, UINT16 iYPxlPos )
 {
 	char cValueBuffer[ MAX_STR_LENGTH ] = {0x0};
@@ -327,6 +353,10 @@ void render_Value( UINT8* fbBase8, UINT16 iValue, UINT16 iXPxlPos, UINT16 iYPxlP
 				   iXPxlPos, iYPxlPos );
 }
 
+/*
+	Renders any static objects that are never meant to change
+	during game play:  Borders & Labels
+*/
 void render_Static( UINT16* fbBase16 )
 {
 	clear_Screen( fbBase16 );
@@ -386,18 +416,19 @@ void render_Static( UINT16* fbBase16 )
 				 NEXT_TET_LEFT_BORDER_X,
 				 NEXT_TET_RIGHT_BORDER_X,
 				 NEXT_TET_BOTTOM_BORDER_Y + 1 );
-				 
-	sMainState[ iCurrState ].bInitialDrawn = true;
 }
 				   
 /*
 	Take in a Model object and render both the Tetrimino and the Game Board.
 */
 void render_All( UINT16* fbBase16,  
-				 const Game_Model* m_GameModel )
+				 const Game_Model* m_GameModel,
+				 int iFPS )
 {
+	iCurrState = 1 - iCurrState;
 	render_Tetrimino( fbBase16, &(m_GameModel->cCurrPiece) );
 	render_Board( fbBase16, &(m_GameModel->cMainBoard) );
+	render_FPS( (UINT8*)fbBase16, iFPS );
 }
 
 /*
@@ -416,7 +447,7 @@ void render_String( UINT8* fbBase8, const char* sText, UINT16 iXPxlPos, UINT16 i
 			bNewLine = true;
 		else if( sText[ iStrIndex ] == '\t' )
 		{
-			while( (iCurrX += BMP_WIDTH) % 31 )
+			while( (iCurrX += TEXT_WIDTH) & TAB_WIDTH_MASK )
 				;
 			if( iCurrX >= SCREEN_WIDTH )
 				bNewLine = true;
@@ -429,11 +460,11 @@ void render_String( UINT8* fbBase8, const char* sText, UINT16 iXPxlPos, UINT16 i
 		if( bNewLine )
 		{
 			iCurrX = iXPxlPos;
-			iCurrY += BMP_HEIGHT;
+			iCurrY += TEXT_HEIGHT;
 			bNewLine = false;
 		}
 		else
-			iCurrX += BMP_WIDTH;
+			iCurrX += TEXT_WIDTH;
 			
 		iStrIndex++;
 	}

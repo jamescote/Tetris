@@ -1,8 +1,7 @@
 #include "model.h"
 #include "tetri.c"
-
-/* TODO: Remove */
-#include <stdio.h>
+#include "music.h"
+#include "sfx.h"
 
 /* External ASM references and functions not needed outside this module */
 void rot_R( UINT16* oldMap, UINT16* newMap );
@@ -41,7 +40,7 @@ void reset_Game( Game_Model* m_MainModel, UINT8 cFirstPiece, UINT8 cNxtPiece )
 	m_MainModel->cMainBoard.chainCount		= 1;
 	m_MainModel->cMainBoard.nxtPiece		= cNxtPiece;
 	m_MainModel->cMainBoard.state			= BOARD_RUN_STATE;
-	m_MainModel->cMainBoard.iGrvty			= 70;
+	m_MainModel->cMainBoard.iGrvty			= DEFAULT_GRAVITY;
 	m_MainModel->cMainBoard.iTimeElapsed	= 0;
 }
 
@@ -60,48 +59,6 @@ void copyTetrimino( Tetrimino* m_Target, const Tetrimino* m_Source )
 }
 
 /*
-	Game Board Copier
-*/
-void copyGameBoard( Game_Board* m_Target, const Game_Board* m_Source )
-{
-	UINT8 i;
-	
-	for( i = 0; i < BOARD_HEIGHT; i++ )
-		m_Target->BoardMap[ i ] = m_Source->BoardMap[ i ];
-	m_Target->iScore 		= m_Source->iScore;
-	m_Target->iLns_Clrd 	= m_Source->iLns_Clrd;
-	m_Target->iLvl			= m_Source->iLvl;
-	m_Target->tetrisCombo	= m_Source->tetrisCombo;
-	m_Target->chainCount	= m_Source->chainCount;
-	m_Target->nxtPiece		= m_Source->nxtPiece;
-	m_Target->state			= m_Source->state;
-	m_Target->iGrvty		= m_Source->iGrvty;
-	m_Target->iTimeElapsed 	= m_Source->iTimeElapsed;
-}
-
-void tetToString( char* cBuffer, const Tetrimino* m_Tetrimino )
-{
-	sprintf( cBuffer,
-			"Tetrimino: \nx = %u/y = %u\nMap:\n0x%04X\n0x%04X\n0x%04X\n0x%04X\n\n",
-			m_Tetrimino->bPos[ X_POS ], m_Tetrimino->bPos[ Y_POS ], 
-			m_Tetrimino->iMap[ 0 ], m_Tetrimino->iMap[ 1 ], m_Tetrimino->iMap[ 2 ],
-			m_Tetrimino->iMap[ 3 ] );
-}
-void gbToString( char* cBuffer, const Game_Board* m_Board )
-{
-	sprintf( cBuffer,
-			"Game_Board:\nScore: %d\nLines Cleared: %u\nLevel: %u\nTetris Combo: %u\nChain Count: %u\nNext Piece: %u\nState: %u\nGravity: %u\n", 
-			m_Board->iScore,
-			m_Board->iLns_Clrd,
-			m_Board->iLvl,
-			m_Board->tetrisCombo,
-			m_Board->chainCount,
-			m_Board->nxtPiece,
-			m_Board->state,
-			m_Board->iGrvty );
-}
-
-/*
 	Determines if the synchronous gravity trigger has occurred
 	Resets the time elapsed variable if it has.
 */
@@ -110,7 +67,7 @@ bool gravityTriggered( Game_Board* m_Board )
 	bool bTriggered = (m_Board->iTimeElapsed >= m_Board->iGrvty);
 	
 	if( bTriggered )
-		m_Board->iTimeElapsed = 0;
+		m_Board->iTimeElapsed -= m_Board->iGrvty;
 		
 	return bTriggered;
 }
@@ -133,7 +90,10 @@ void move_Left( Tetrimino* m_PieceToMove,
 			for( i = 0; i < T_HEIGHT; i++ )
 				m_PieceToMove->iMap[ i ] >>= 1;
 		else
+		{
 			m_PieceToMove->bPos[ X_POS ]++;
+			play_Move_Tetrimino_FX( );
+		}
 	}
 		
  }
@@ -155,7 +115,10 @@ void move_Left( Tetrimino* m_PieceToMove,
 			for( i = 0; i < T_HEIGHT; i++ )
 				m_PieceToMove->iMap[ i ] <<= 1;
 		else
+		{
 			m_PieceToMove->bPos[ X_POS ]--;
+			play_Move_Tetrimino_FX( );
+		}
 	}
  }
  
@@ -172,6 +135,8 @@ void move_Left( Tetrimino* m_PieceToMove,
 		m_PieceToMove->bPos[ Y_POS ]++;
 		lock_piece( m_Board, m_PieceToMove );
 	}
+	else
+		play_Move_Tetrimino_FX( );
 }
 
 /*
@@ -215,9 +180,6 @@ void Rotate( Tetrimino* m_PieceToRotate,
 		m_PieceToRotate->iMap[ i ] = xMap[ i ];
 	
 	fixPosition( m_PieceToRotate, m_Board );
-	
-	/* push back gravity counter to give time for moving piece. */
-	m_Board->iTimeElapsed -= GRAVITY_DELTA;
 }
 
 /*
@@ -307,12 +269,17 @@ void lock_piece( Game_Board* m_Board,
 			m_Board->BoardMap[ iPiecePos - i ] |= 
 				m_cLockingPiece->iMap[ i ];
 				
+		play_Lock_Tetrimino_FX( );
+				
 		Calc_Score( m_Board );
 		
 		m_Board->state = BOARD_LOCK_STATE;
 	}
 	else
+	{
 		m_Board->state = BOARD_GAME_OVER_STATE;
+		play_Top_Out_FX( );
+	}
 }
 
 /* 
@@ -350,9 +317,14 @@ void Calc_Score( Game_Board* m_Board )
 			iPointsScored += PTS_TETRIS * m_Board->tetrisCombo;
 			if( m_Board->tetrisCombo < TTRS_CNST )
 				m_Board->tetrisCombo++;
+				
+			play_Tetris_FX( );
 		}
 		else
+		{
 			m_Board->tetrisCombo = 1;
+			play_Line_Clear_FX( );
+		}
 		
 		m_Board->iLns_Clrd += iLinesCleared;
 		
@@ -362,6 +334,7 @@ void Calc_Score( Game_Board* m_Board )
 			m_Board->iLns_Clrd -= LEVEL_THRESHOLD;
 			m_Board->iGrvty -= GRAVITY_DELTA;
 			m_Board->iTimeElapsed = 0;
+			adjust_tempo( m_Board->iLvl );
 		}
 		
 		m_Board->iScore += iPointsScored;

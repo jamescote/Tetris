@@ -12,10 +12,14 @@ void render_Tetrimino( UINT16* fbBase16,
 void render_Board( UINT16* fbBase16,
 				   const Game_Board* m_Board );
 void render_All( UINT16* fbBase16,
-				 const Game_Model* m_GameModel );
+				 const Game_Model* m_GameModel,
+				 int iFPS );
 void render_String( UINT8* fbBase8, 
 					const char* sText, 
 					UINT16 iXPxlPos, UINT16 iYPxlPos );
+void flag_FPS_Rend( );
+void flag_FPS_Clear( );
+void render_Static( UINT16* fbBase16 );
 void clear_Screen( UINT16* fbBase16 );
 
 #endif

@@ -26,6 +26,7 @@ typedef struct
 	UINT8 iGrvty, iTimeElapsed;
 } Game_Board;
 
+/* Game Model Structure */
 typedef struct
 {
 	Tetrimino cCurrPiece;
@@ -47,11 +48,6 @@ void Game_Over(Game_Board* m_Board,
 UINT8 clear_Lines(Game_Board* m_Board );
 void spawnPiece( Tetrimino* m_cCurrPiece, UINT8 iPiece );
 void copyTetrimino( Tetrimino* m_Target, const Tetrimino* m_Source );
-void copyGameBoard( Game_Board* m_Target, const Game_Board* m_Source );
 bool gravityTriggered( Game_Board* m_Board );
-
-void tetToString( char* cBuffer, const Tetrimino* m_Tetrimino );
-void gbToString( char* cBuffer, const Game_Board* m_Board );
-
 
 #endif
