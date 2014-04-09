@@ -18,5 +18,7 @@ void draw_bitmap_16( UINT16* fbBase16,
 		   int x, int y,
 		   const UINT16* pBitMap,
 		   unsigned int iHeight );
+UINT16* get_video_base( );
+void set_video_base( UINT16* wVBase );
 
 #endif

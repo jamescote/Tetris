@@ -17,5 +17,6 @@ void enable_channel( int iChannel, bool bTone_On, bool bNoise_On );
 void set_envelope( UINT16 wEnvFrequency, UINT8 bEnvelope );
 void set_noise( int iTuning );
 void stop_sound( );
+void start_sound( );
 
 #endif

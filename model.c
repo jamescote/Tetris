@@ -1,7 +1,15 @@
+/*
+	Name: Model.c
+	Purpose: Contains Main Game events and functionality
+	Written by: James Cote
+*/
 #include "model.h"
 #include "tetri.c"
 #include "music.h"
 #include "sfx.h"
+#include <osbind.h>
+
+#define VBL_INTERRUPT_MASK 4
 
 /* External ASM references and functions not needed outside this module */
 void rot_R( UINT16* oldMap, UINT16* newMap );
@@ -15,6 +23,7 @@ void fixPosition( Tetrimino* m_PieceToFix,
 bool pieceCollided( Tetrimino* m_PieceToCheck,
 					 Game_Board* m_Board );
 bool isTetriminoOutOfBounds( const Tetrimino* m_PieceToCheck );
+int set_ipl( int mask );
 					 
  /*
 	Sets the game Model into a fresh state for starting a new game.
@@ -128,6 +137,14 @@ void move_Left( Tetrimino* m_PieceToMove,
  void move_Down( Tetrimino* m_PieceToMove,
 				 Game_Board* m_Board )
 {	
+	int old_ssp = Super( 1 );
+	int old_ipl;
+	
+	if( !old_ssp )
+		old_ssp = Super( 0 );
+		
+	old_ipl = set_ipl( VBL_INTERRUPT_MASK );
+	
 	m_PieceToMove->bPos[ Y_POS ]--;
 	
 	if( pieceCollided( m_PieceToMove, m_Board ) )
@@ -137,6 +154,11 @@ void move_Left( Tetrimino* m_PieceToMove,
 	}
 	else
 		play_Move_Tetrimino_FX( );
+	
+	set_ipl( old_ipl );
+	
+	if( SUPER_MODE != old_ssp )
+		Super( old_ssp );
 }
 
 /*
@@ -256,13 +278,21 @@ void spawnPiece( Tetrimino* m_cCurrPiece, UINT8 iPiece )
 
 /*
 	Locks a Piece into the board and handles any result from the lock.
+	Time critical since a synchronous move can trigger this at the same time.
 */
 void lock_piece( Game_Board* m_Board,
 				 Tetrimino* m_cLockingPiece )
 {
 	int iPiecePos = m_cLockingPiece->bPos[ Y_POS ];
 	UINT8 i;
-
+	int old_ssp = Super( 1 );
+	int old_ipl;
+	
+	if( !old_ssp )
+		old_ssp = Super( 0 );
+		
+	old_ipl = set_ipl( VBL_INTERRUPT_MASK );
+	
 	if( !isTetriminoOutOfBounds( m_cLockingPiece ) )
 	{
 		for( i = 0; i < T_HEIGHT; i++ )
@@ -280,6 +310,11 @@ void lock_piece( Game_Board* m_Board,
 		m_Board->state = BOARD_GAME_OVER_STATE;
 		play_Top_Out_FX( );
 	}
+	
+	set_ipl( old_ipl );
+	
+	if( SUPER_MODE != old_ssp )
+		Super( old_ssp );
 }
 
 /* 

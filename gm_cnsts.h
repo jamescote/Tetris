@@ -1,3 +1,8 @@
+/*
+	Name: gm_cnsts.h
+	Purpose: Contains many of the defines required by the tetris game.
+	Written by: James Cote
+*/
 #ifndef _GAME_CNSTS_
 #define _GAME_CNSTS_
 
@@ -77,12 +82,12 @@
 #define SCORE_POS_Y 208
 
 /* Game Board States */
-#define BOARD_RESET_STATE 0		
-#define	BOARD_RUN_STATE 1		
-#define BOARD_PAUSE_STATE 2
-#define	BOARD_LOCK_STATE 3
-#define BOARD_GAME_OVER_STATE 4
-#define BOARD_LEVEL_UP 5
+#define BOARD_RESET_STATE 		0		
+#define	BOARD_RUN_STATE 		1		
+#define BOARD_PAUSE_STATE 		2
+#define	BOARD_LOCK_STATE 		3
+#define BOARD_GAME_OVER_STATE 	4
+#define BOARD_LEVEL_UP 			5
 
 /* Main Game States */
 #define GAME_EXIT 0
@@ -102,6 +107,7 @@
 #define PAUSE_F1		0x3b /*F1*/
 #define QUIT			0x10 /*Q*/
 #define FPS				0x21 /*F*/
+#define GAME_KEY_COUNT	11
 
 /* Scoring Defines */
 #define PTS_TETRIS 50

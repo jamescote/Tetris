@@ -11,6 +11,8 @@
 #include "font.c"
 #include "tetri.c"
 #include "gm_cnsts.h"
+#include "mnu_cns.h"
+#include "mminos.c"
 
 /* Local Function Declaration */
 void render_Line( UINT16* fbBase16, 
@@ -26,8 +28,36 @@ void render_Value( UINT8* fbBase8, UINT16 iValue, UINT16 iXPxlPos, UINT16 iYPxlP
 void fill_Board( UINT16* fbBase16, const Game_Board* m_Board );
 void render_Next_Tetrimino( UINT16* fbBase16, const Game_Board* m_Board );
 void render_FPS( UINT8* fbBase8, int iValue );
+void draw_Selection_Mino( UINT16* fbBase16, UINT8 bNewSelection );
+void render_Menu_Static( UINT16* fbBase16 );
 				  
 /* Private Variables */
+const stMenuMino m_SelMinoPositions[ RUN_MENU ][ 2 ] =
+{
+	{ 
+		{ QUIT_MINO_X1, QUIT_MINO_Y }, 
+		{ QUIT_MINO_X2, QUIT_MINO_Y }
+	},
+	{ 
+		{ ONE_P_MINO_X1, ONE_P_MINO_Y }, 
+		{ ONE_P_MINO_X2, ONE_P_MINO_Y }
+	},
+	{ 
+		{ TWO_P_MINO_X1, TWO_P_MINO_Y }, 
+		{ TWO_P_MINO_X2, TWO_P_MINO_Y }
+	}
+};
+
+struct stMenuRendState
+{
+	bool bStaticDrawn;
+	UINT8 bCurrSelection;
+} stMenuRendState[ 2 ] =
+{
+	{ false, RUN_MENU },
+	{ false, RUN_MENU }
+};
+
 struct sRendState
 {
 	Tetrimino m_TetriState;
@@ -56,6 +86,7 @@ struct sRendState
 	}
 };
 UINT8 iCurrState = FRONT_STATE;
+UINT8 iCurrMenuState = FRONT_STATE;
 
 /* Function Implementation */
 /*
@@ -80,6 +111,9 @@ void reset_Rend_State( )
 		sMainState[ j ].iRendLns_Clrd 		= GARBAGE_INPUT_16;
 		sMainState[ j ].iRendLvl			= GARBAGE_INPUT_16;
 		sMainState[ j ].iRendNxtPiece		= GARBAGE_INPUT_8;
+		
+		stMenuRendState[ j ].bStaticDrawn = false;
+		stMenuRendState[ j ].bCurrSelection = RUN_MENU;
 	}
 }
 
@@ -477,4 +511,125 @@ void clear_Screen( UINT16* fbBase16 )
 {
 	clear_region( fbBase16, 0, SCREEN_WIDTH, 0, SCREEN_HEIGHT );
 	reset_Rend_State( );
+}
+
+/*
+	Renders the Main Menu
+*/
+void draw_Menu( UINT16* fbBase16, UINT8 Draw_Selection )
+{
+	iCurrMenuState = 1 - iCurrMenuState;
+	if( !stMenuRendState[ iCurrMenuState ].bStaticDrawn )
+	{
+		render_Menu_Static( fbBase16 );
+		stMenuRendState[ iCurrMenuState ].bStaticDrawn = true;
+	}
+	
+	if( stMenuRendState[ iCurrMenuState ].bCurrSelection != Draw_Selection &&
+	    Draw_Selection >= QUIT_GAME && Draw_Selection < RUN_MENU )
+	{
+		draw_Selection_Mino( fbBase16, Draw_Selection );
+		stMenuRendState[ iCurrMenuState ].bCurrSelection = Draw_Selection;
+	}		
+}
+
+void draw_Selection_Mino( UINT16* fbBase16, UINT8 bNewSelection )
+{
+	UINT8 y;
+	
+	for( y = 0; y < 2; y++ )
+	{
+		if( stMenuRendState[ iCurrMenuState ].bCurrSelection != RUN_MENU )
+			clear_region( fbBase16, 
+						  m_SelMinoPositions[ stMenuRendState[ iCurrMenuState ].bCurrSelection ][ y ].wXPos,
+						  m_SelMinoPositions[ stMenuRendState[ iCurrMenuState ].bCurrSelection ][ y ].wXPos + MINO_SIZE, 
+						  m_SelMinoPositions[ stMenuRendState[ iCurrMenuState ].bCurrSelection ][ y ].wYPos, 
+						  m_SelMinoPositions[ stMenuRendState[ iCurrMenuState ].bCurrSelection ][ y ].wYPos + BMP_HEIGHT );
+						  
+		draw_bitmap_16( fbBase16,
+						m_SelMinoPositions[ bNewSelection ][ y ].wXPos, 
+						m_SelMinoPositions[ bNewSelection ][ y ].wYPos,
+						iMinoBitmap,
+						BMP_HEIGHT );
+	}			
+}
+
+void render_Menu_Static( UINT16* fbBase16 )
+{
+	UINT8 x;
+	UINT16 y;
+	
+	/* Draw Mino BackGround */
+	for( x = 0; x < MAX_MENU_MINOS; x++ )
+		for( y = m_MenuMinos[ x ].wYPos; y <= (SCREEN_HEIGHT - MINO_SIZE); y += MINO_SIZE )
+			draw_bitmap_16( fbBase16,
+							m_MenuMinos[ x ].wXPos, y,
+							iMinoBitmap,
+							BMP_HEIGHT );
+							
+	render_String( (UINT8*)fbBase16, "TETRIS", 
+				   TITLE_X_POS, TITLE_Y_POS );
+	
+	/* draw 1P box */
+	plot_v_line( (UINT8*)fbBase16,	/* Left Border */
+				 ONE_P_X_POS,
+				 ONE_P_Y_POS,
+				 ONE_P_Y_POS + BOX_HEIGHT );
+	plot_h_line( (UINT32*)fbBase16,	/* Top Border */
+				 ONE_P_X_POS,
+				 ONE_P_X_POS + BOX_WIDTH,
+				 ONE_P_Y_POS );
+	plot_v_line( (UINT8*)fbBase16,	/* Right Border */
+				 ONE_P_X_POS + BOX_WIDTH,
+				 ONE_P_Y_POS,
+				 ONE_P_Y_POS + BOX_HEIGHT );
+	plot_h_line( (UINT32*)fbBase16,	/* Bottom Border */
+				 ONE_P_X_POS,
+				 ONE_P_X_POS + BOX_WIDTH,
+				 ONE_P_Y_POS + BOX_HEIGHT );
+				 
+	render_String( (UINT8*)fbBase16, "1-Player", 
+				   ONE_P_TXT_X, ONE_P_TXT_Y );
+				 
+	/* draw 2P box */
+	plot_v_line( (UINT8*)fbBase16,	/* Left Border */
+				 TWO_P_X_POS,
+				 TWO_P_Y_POS,
+				 TWO_P_Y_POS + BOX_HEIGHT );
+	plot_h_line( (UINT32*)fbBase16,	/* Top Border */
+				 TWO_P_X_POS,
+				 TWO_P_X_POS + BOX_WIDTH,
+				 TWO_P_Y_POS );
+	plot_v_line( (UINT8*)fbBase16,	/* Right Border */
+				 TWO_P_X_POS + BOX_WIDTH,
+				 TWO_P_Y_POS,
+				 TWO_P_Y_POS + BOX_HEIGHT );
+	plot_h_line( (UINT32*)fbBase16,	/* Bottom Border */
+				 TWO_P_X_POS,
+				 TWO_P_X_POS + BOX_WIDTH,
+				 TWO_P_Y_POS + BOX_HEIGHT );
+				 
+	render_String( (UINT8*)fbBase16,"2-Player", 
+				   TWO_P_TXT_X, TWO_P_TXT_Y );
+				 
+	/* draw Quit box */
+	plot_v_line( (UINT8*)fbBase16,	/* Left Border */
+				 QUIT_X_POS,
+				 QUIT_Y_POS,
+				 QUIT_Y_POS + BOX_HEIGHT );
+	plot_h_line( (UINT32*)fbBase16,	/* Top Border */
+				 QUIT_X_POS,
+				 QUIT_X_POS + BOX_WIDTH,
+				 QUIT_Y_POS );
+	plot_v_line( (UINT8*)fbBase16,	/* Right Border */
+				 QUIT_X_POS + BOX_WIDTH,
+				 QUIT_Y_POS,
+				 QUIT_Y_POS + BOX_HEIGHT );
+	plot_h_line( (UINT32*)fbBase16,	/* Bottom Border */
+				 QUIT_X_POS,
+				 QUIT_X_POS + BOX_WIDTH,
+				 QUIT_Y_POS + BOX_HEIGHT );
+	
+	render_String( (UINT8*)fbBase16,"Quit", 
+				   QUIT_TXT_X, QUIT_TXT_Y );
 }

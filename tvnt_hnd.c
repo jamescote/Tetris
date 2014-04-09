@@ -4,6 +4,7 @@
 #include "model.h"
 #include "renderer.h"
 #include "music.h"
+#include "mnu_cns.h"
 
 /* Global Variables */
 struct FPS_Status
@@ -17,13 +18,84 @@ struct FPS_Status
 	0, 0, 0, false
 };
 
+const UINT8 bNumHotKeys = GAME_KEY_COUNT + MENU_KEY_COUNT;
+const UINT8 bEventHotKeys[ GAME_KEY_COUNT + MENU_KEY_COUNT ] =
+{
+	MOVE_LEFT,
+    MOVE_RIGHT, 		
+	MOVE_DOWN,		
+	ROTATE_RIGHT,	
+	ROTATE_RIGHT_X,
+	ROTATE_LEFT,		
+	PAUSE_P,			
+	PAUSE_ESC,		
+	PAUSE_F1,		
+	QUIT,			
+	FPS,	
+	ONE_PLAYER_KEY,	
+    TWO_PLAYER_KEY, 	
+    UP_ARROW,		
+	ENTER			
+};
+
+void getHotKeys( UINT8 bKeys[], UINT8 *bCount )
+{
+	UINT8 i;
+	
+	for( i = 0; i < bNumHotKeys; i++ )
+		bKeys[ i ] = bEventHotKeys[ i ];
+	bKeys = bEventHotKeys;
+	*bCount = bNumHotKeys;
+}
+
+/*
+	Handles Asynchronous events required by the Game Menu
+*/
+UINT8 handleMenuAsync( const UINT8 cTrigger, char* bCurrentSelection )
+{
+	UINT8 bReturnState = RUN_MENU;
+	
+	switch( cTrigger )
+	{
+		case MOVE_LEFT:
+		case UP_ARROW:
+			/* Handle Moving to previous Selection */
+			*bCurrentSelection -= 1;
+			if( *bCurrentSelection < QUIT_GAME )
+				*bCurrentSelection = RUN_MENU - 1;
+			break;
+		case MOVE_RIGHT:
+		case MOVE_DOWN:
+			/* Handle Moving to next selection */
+			(*bCurrentSelection)++;
+			if( *bCurrentSelection >= RUN_MENU )
+				*bCurrentSelection = QUIT_GAME;
+			break;
+		case ENTER:
+			/* Handle Selecting Selection */
+			bReturnState = *bCurrentSelection;
+			break;
+		case ONE_PLAYER_KEY:
+			bReturnState = ONE_PLAYER;
+			break;
+		case TWO_PLAYER_KEY:
+			bReturnState = TWO_PLAYER;
+			break;
+		case QUIT:
+			bReturnState = QUIT_GAME;
+			break;
+		default:
+			break;
+	};
+	
+	return bReturnState;
+}
+
 /*
 	Handles Asynchronous events required by the tetris game.
 */
-void handleAsync( const long lTrigger, Game_Model* m_MainGameModel, bool bPaused )
-{
-	const char cTrigger = (char)(lTrigger >> WORD_LENGTH);
-		
+void handleAsync( const UINT8 cTrigger, Game_Model* m_MainGameModel, bool bPaused )
+{		
 	switch( cTrigger )
 	{
 		case MOVE_LEFT:
@@ -75,11 +147,10 @@ void handleAsync( const long lTrigger, Game_Model* m_MainGameModel, bool bPaused
 /*
 	Synchronized game logic is executed here.
 */
-void handleSync( UINT16* fbBase16, Game_Model* m_MainGameModel, UINT32* lTimeElapsed )
+void handleSync( Game_Model* m_MainGameModel, UINT32 lTimeElapsed )
 {
-	FPS_Status.iTimer += *lTimeElapsed;
-	m_MainGameModel->cMainBoard.iTimeElapsed += *lTimeElapsed;
-	render_All( fbBase16, m_MainGameModel, FPS_Status.iCurrentFPS );
+	FPS_Status.iTimer += lTimeElapsed;
+	m_MainGameModel->cMainBoard.iTimeElapsed += lTimeElapsed;
 	FPS_Status.iRenderCount++;
 	if( FPS_Status.iTimer >= TICKS_PER_SECOND )
 	{
@@ -89,10 +160,13 @@ void handleSync( UINT16* fbBase16, Game_Model* m_MainGameModel, UINT32* lTimeEla
 		FPS_Status.iCurrentFPS = FPS_Status.iRenderCount;
 		FPS_Status.iRenderCount = 0;
 	}
-	update_music( *lTimeElapsed );
+	update_music( lTimeElapsed );
 	if( gravityTriggered( &(m_MainGameModel->cMainBoard) ) )
 		move_Down( &(m_MainGameModel->cCurrPiece),
 				   &(m_MainGameModel->cMainBoard) );
-				   
-	*lTimeElapsed = 0;
+}
+
+void handleRenderSync( UINT16* fbBase16, Game_Model* m_MainGameModel )
+{
+	render_All( fbBase16, m_MainGameModel, FPS_Status.iCurrentFPS );
 }

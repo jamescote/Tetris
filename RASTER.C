@@ -1,3 +1,9 @@
+/*
+	Name: Raster.c
+	Purpose: Contains low level code for writing
+			 images to a given frame buffer.
+	Written by: James Cote
+*/
 #include "raster.h"
 
 /* Constant Definitions */
@@ -120,7 +126,6 @@ void plot_v_line( UINT8* fbBase,
 
 /*
 	Purpose: Draw a byte aligned bitmap.
-	TODO: Remove Clipping functionality.
 */
 void draw_bitmap_8( UINT8* fbBase8,
 		     int x, int y,

@@ -16,33 +16,17 @@ struct mMainTheme
 	char bEnvelopeVolumeDelta;
 };
 
-struct mMainTheme m_MainTheme;
+struct mMainTheme m_MainTheme =
+{
+	0, 0, 0, 0, 0, 0, false, 0, 0
+};
 
 /* For simplicity */
 #define currentNote m_MainTheme.pCurrentSong[m_MainTheme.iCurrIndex]
 
 /* private function declarations */
 void set_note( const Note* m_NoteToSet );
-void set_up_theme( Note nNewSong[], int iSize, bool useEnvelope, bool bStart );
 void set_up_envelope( );
-
-/* Sets up the music based on parameters */
-void set_up_theme( Note nNewSong[], int iSize, bool useEnvelope, bool bStart )
-{
-	m_MainTheme.pCurrentSong		= nNewSong;
-	m_MainTheme.iCurrentSongSize 	= iSize;
-	if( bStart || m_MainTheme.iCurrIndex >= iSize )
-		m_MainTheme.iCurrIndex	= 0;
-	if( bStart )
-		m_MainTheme.bTempo 		= 0;
-	m_MainTheme.iTickCount 			= currentNote.iDuration;
-	m_MainTheme.bCurrentVolume 		= DEFAULT_VOLUME;
-	m_MainTheme.bEnvelope			= useEnvelope;
-	set_up_envelope( );
-	set_note( &(currentNote) );
-	enable_channel( MUSIC_CHANNEL, true, false );
-	set_volume( MUSIC_CHANNEL, m_MainTheme.bCurrentVolume );
-}
 
 /* Sets up information for software Envelope 
 	- There is only one type of envelope that goes from high
@@ -63,13 +47,19 @@ void set_up_envelope( )
 	the music to default. */
 void start_music( Note nNewSong[], int iSize, bool useEnvelope )
 {
-	set_up_theme( nNewSong, iSize, useEnvelope, true );
-}
-
-/* sets a new song without resetting the current index */
-void switch_music( Note nNewSong[], int iSize, bool useEnvelope )
-{
-	set_up_theme( nNewSong, iSize, useEnvelope, false );
+	m_MainTheme.pCurrentSong		= nNewSong;
+	m_MainTheme.iCurrentSongSize 	= iSize;
+	m_MainTheme.iCurrIndex			= 0;
+	m_MainTheme.bTempo 				= 0;
+	m_MainTheme.iTickCount 			= currentNote.iDuration;
+	m_MainTheme.bCurrentVolume 		= DEFAULT_VOLUME;
+	m_MainTheme.bEnvelope			= useEnvelope;
+	start_sound( );
+	set_up_envelope( );
+	set_note( &(currentNote) );
+	enable_channel( MUSIC_CHANNEL, true, false );
+	set_volume( MUSIC_CHANNEL, m_MainTheme.bCurrentVolume );
+	m_MainTheme.bPaused 			= false;
 }
 
 /* Music Control Functions */

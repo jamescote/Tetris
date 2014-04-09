@@ -1,3 +1,8 @@
+/*
+	Name: Renderer.h
+	Purpose: Contains interface for using the renderer module.
+	Written by: James Cote
+*/
 #ifndef _RENDERER_H
 #define _RENDERER_H
 
@@ -21,5 +26,6 @@ void flag_FPS_Rend( );
 void flag_FPS_Clear( );
 void render_Static( UINT16* fbBase16 );
 void clear_Screen( UINT16* fbBase16 );
+void draw_Menu( UINT16* fbBase16, UINT8 Draw_Selection );
 
 #endif

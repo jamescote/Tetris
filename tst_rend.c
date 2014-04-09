@@ -1,3 +1,8 @@
+/*
+	Name: tst_rend.c
+	Purpose: Test Game rendering functionality.
+	Written by: James Cote
+*/
 /* Includes */
 #include "renderer.h"
 #include "model.h"

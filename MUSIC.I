@@ -8,6 +8,11 @@ typedef unsigned long UINT32;
 
 
 typedef UINT8 bool;
+
+
+
+
+typedef void (*Vector)();
 # 5 "./music.h" 2
 # 1 "./gm_cnsts.h" 1
 # 6 "./music.h" 2
@@ -42,6 +47,7 @@ void enable_channel( int iChannel, bool bTone_On, bool bNoise_On );
 void set_envelope( UINT16 wEnvFrequency, UINT8 bEnvelope );
 void set_noise( int iTuning );
 void stop_sound( );
+void start_sound( );
 # 3 "music.c" 2
 # 1 "./snd_cnst.h" 1
 # 4 "music.c" 2
@@ -60,33 +66,17 @@ struct mMainTheme
 	char bEnvelopeVolumeDelta;
 };
 
-struct mMainTheme m_MainTheme;
+struct mMainTheme m_MainTheme =
+{
+	0, 0, 0, 0, 0, 0, 0 , 0, 0
+};
 
 
 
 
 
 void set_note( const Note* m_NoteToSet );
-void set_up_theme( Note nNewSong[], int iSize, bool useEnvelope, bool bStart );
 void set_up_envelope( );
-
-
-void set_up_theme( Note nNewSong[], int iSize, bool useEnvelope, bool bStart )
-{
-	m_MainTheme.pCurrentSong		= nNewSong;
-	m_MainTheme.iCurrentSongSize 	= iSize;
-	if( bStart || m_MainTheme.iCurrIndex >= iSize )
-		m_MainTheme.iCurrIndex	= 0;
-	if( bStart )
-		m_MainTheme.bTempo 		= 0;
-	m_MainTheme.iTickCount 			= m_MainTheme.pCurrentSong[m_MainTheme.iCurrIndex] .iDuration;
-	m_MainTheme.bCurrentVolume 		= 0x0a ;
-	m_MainTheme.bEnvelope			= useEnvelope;
-	set_up_envelope( );
-	set_note( &(m_MainTheme.pCurrentSong[m_MainTheme.iCurrIndex] ) );
-	enable_channel( 0 , 1 , 0  );
-	set_volume( 0 , m_MainTheme.bCurrentVolume );
-}
 
 
 
@@ -107,13 +97,19 @@ void set_up_envelope( )
 
 void start_music( Note nNewSong[], int iSize, bool useEnvelope )
 {
-	set_up_theme( nNewSong, iSize, useEnvelope, 1  );
-}
-
-
-void switch_music( Note nNewSong[], int iSize, bool useEnvelope )
-{
-	set_up_theme( nNewSong, iSize, useEnvelope, 0  );
+	m_MainTheme.pCurrentSong		= nNewSong;
+	m_MainTheme.iCurrentSongSize 	= iSize;
+	m_MainTheme.iCurrIndex			= 0;
+	m_MainTheme.bTempo 				= 0;
+	m_MainTheme.iTickCount 			= m_MainTheme.pCurrentSong[m_MainTheme.iCurrIndex] .iDuration;
+	m_MainTheme.bCurrentVolume 		= 0x0a ;
+	m_MainTheme.bEnvelope			= useEnvelope;
+	start_sound( );
+	set_up_envelope( );
+	set_note( &(m_MainTheme.pCurrentSong[m_MainTheme.iCurrIndex] ) );
+	enable_channel( 0 , 1 , 0  );
+	set_volume( 0 , m_MainTheme.bCurrentVolume );
+	m_MainTheme.bPaused 			= 0 ;
 }
 
 

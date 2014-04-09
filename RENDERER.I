@@ -9,6 +9,11 @@ typedef unsigned long UINT32;
 
 
 typedef UINT8 bool;
+
+
+
+
+typedef void (*Vector)();
 # 4 "./model.h" 2
 # 1 "./gm_cnsts.h" 1
 # 5 "./model.h" 2
@@ -52,9 +57,9 @@ UINT8 clear_Lines(Game_Board* m_Board );
 void spawnPiece( Tetrimino* m_cCurrPiece, UINT8 iPiece );
 void copyTetrimino( Tetrimino* m_Target, const Tetrimino* m_Source );
 bool gravityTriggered( Game_Board* m_Board );
-# 4 "./renderer.h" 2
+# 9 "./renderer.h" 2
 # 1 "./types.h" 1
-# 5 "./renderer.h" 2
+# 10 "./renderer.h" 2
 
 
 
@@ -74,6 +79,7 @@ void flag_FPS_Rend( );
 void flag_FPS_Clear( );
 void render_Static( UINT16* fbBase16 );
 void clear_Screen( UINT16* fbBase16 );
+void draw_Menu( UINT16* fbBase16, UINT8 Draw_Selection );
 # 9 "renderer.c" 2
 # 1 "./raster.h" 1
 # 1 "./types.h" 1
@@ -95,6 +101,8 @@ void draw_bitmap_16( UINT16* fbBase16,
 		   int x, int y,
 		   const UINT16* pBitMap,
 		   unsigned int iHeight );
+UINT16* get_video_base( );
+void set_video_base( UINT16* wVBase );
 # 10 "renderer.c" 2
 # 1 "./font.c" 1
 
@@ -309,6 +317,42 @@ const static UINT16 iMinoBitmap[ 16  ] =
 # 12 "renderer.c" 2
 # 1 "./gm_cnsts.h" 1
 # 13 "renderer.c" 2
+# 1 "./mnu_cns.h" 1
+# 10 "./mnu_cns.h"
+typedef struct menu_Mino
+{
+	UINT16 wXPos, wYPos;
+}stMenuMino;
+# 14 "renderer.c" 2
+# 1 "./mminos.c" 1
+# 1 "./mnu_cns.h" 1
+# 4 "./mminos.c" 2
+
+
+const stMenuMino m_MenuMinos[ 40  ] =
+{
+
+	{ 0, 208 },     { 160, 272 },    { 320, 384 },    { 480, 304 },
+
+	{ 16, 224 },    { 176, 288 },    { 336, 352 },    { 496, 288 },
+
+	{ 32, 224 },    { 192, 272 },    { 352, 384 },    { 512, 304 },
+
+	{ 48, 240 },    { 208, 304 },    { 368, 384 },    { 528, 272 },
+
+	{ 64, 240 },    { 224, 320 },    { 384, 352 },    { 544, 256 },
+
+	{ 80, 256 },    { 240, 352 },    { 400, 352 },    { 560, 304 },
+
+	{ 96, 240 },    { 256, 336 },    { 416, 336 },    { 576, 224 },
+
+	{ 112, 256 },   { 272, 384 },    { 432, 368 },    { 592, 256 },
+
+	{ 128, 240 },   { 288, 368 },    { 448, 320 },    { 608, 208 },
+
+    { 144, 256 },   { 304, 352 },    { 464, 320 },    { 624, 208 }
+};
+# 15 "renderer.c" 2
 
 
 
@@ -325,7 +369,35 @@ void render_Value( UINT8* fbBase8, UINT16 iValue, UINT16 iXPxlPos, UINT16 iYPxlP
 void fill_Board( UINT16* fbBase16, const Game_Board* m_Board );
 void render_Next_Tetrimino( UINT16* fbBase16, const Game_Board* m_Board );
 void render_FPS( UINT8* fbBase8, int iValue );
+void draw_Selection_Mino( UINT16* fbBase16, UINT8 bNewSelection );
+void render_Menu_Static( UINT16* fbBase16 );
 
+
+const stMenuMino m_SelMinoPositions[ 3  ][ 2 ] =
+{
+	{
+		{ 239  + 1 , 150  + 50  + 1  },
+		{ 239  + 162  - 17 , 150  + 50  + 1  }
+	},
+	{
+		{ 79  + 1 , 150  + 1  },
+		{ 79  + 162  - 17 , 150  + 1  }
+	},
+	{
+		{ 399  + 1 , 150  + 1  },
+		{ 399  + 162  - 17 , 150  + 1  }
+	}
+};
+
+struct stMenuRendState
+{
+	bool bStaticDrawn;
+	UINT8 bCurrSelection;
+} stMenuRendState[ 2 ] =
+{
+	{ 0 , 3  },
+	{ 0 , 3  }
+};
 
 struct sRendState
 {
@@ -355,6 +427,7 @@ struct sRendState
 	}
 };
 UINT8 iCurrState = 0 ;
+UINT8 iCurrMenuState = 0 ;
 
 
 
@@ -379,6 +452,9 @@ void reset_Rend_State( )
 		sMainState[ j ].iRendLns_Clrd 		= (unsigned int)-1 ;
 		sMainState[ j ].iRendLvl			= (unsigned int)-1 ;
 		sMainState[ j ].iRendNxtPiece		= (unsigned char)-1 ;
+
+		stMenuRendState[ j ].bStaticDrawn = 0 ;
+		stMenuRendState[ j ].bCurrSelection = 3 ;
 	}
 }
 
@@ -483,7 +559,7 @@ void clear_Tetrimino( UINT16* fbBase16 )
 		iYPxlPos += 16 ;
 	}
 }
-# 197 "renderer.c"
+# 231 "renderer.c"
 void render_Line( UINT16* fbBase16,
 					 UINT16 iMap,
 					 int iYPxlPos,
@@ -598,7 +674,7 @@ void render_Next_Tetrimino( UINT16* fbBase16, const Game_Board* m_Board )
 		sMainState[ iCurrState ].iRendNxtPiece = m_Board->nxtPiece;
 	}
 }
-# 318 "renderer.c"
+# 352 "renderer.c"
 void render_Status( UINT8* fbBase8, const Game_Board* m_Board )
 {
 
@@ -761,4 +837,125 @@ void clear_Screen( UINT16* fbBase16 )
 {
 	clear_region( fbBase16, 0, 640 , 0, 400  );
 	reset_Rend_State( );
+}
+
+
+
+
+void draw_Menu( UINT16* fbBase16, UINT8 Draw_Selection )
+{
+	iCurrMenuState = 1 - iCurrMenuState;
+	if( !stMenuRendState[ iCurrMenuState ].bStaticDrawn )
+	{
+		render_Menu_Static( fbBase16 );
+		stMenuRendState[ iCurrMenuState ].bStaticDrawn = 1 ;
+	}
+
+	if( stMenuRendState[ iCurrMenuState ].bCurrSelection != Draw_Selection &&
+	    Draw_Selection >= 0  && Draw_Selection < 3  )
+	{
+		draw_Selection_Mino( fbBase16, Draw_Selection );
+		stMenuRendState[ iCurrMenuState ].bCurrSelection = Draw_Selection;
+	}
+}
+
+void draw_Selection_Mino( UINT16* fbBase16, UINT8 bNewSelection )
+{
+	UINT8 y;
+
+	for( y = 0; y < 2; y++ )
+	{
+		if( stMenuRendState[ iCurrMenuState ].bCurrSelection != 3  )
+			clear_region( fbBase16,
+						  m_SelMinoPositions[ stMenuRendState[ iCurrMenuState ].bCurrSelection ][ y ].wXPos,
+						  m_SelMinoPositions[ stMenuRendState[ iCurrMenuState ].bCurrSelection ][ y ].wXPos + 16 ,
+						  m_SelMinoPositions[ stMenuRendState[ iCurrMenuState ].bCurrSelection ][ y ].wYPos,
+						  m_SelMinoPositions[ stMenuRendState[ iCurrMenuState ].bCurrSelection ][ y ].wYPos + 16  );
+
+		draw_bitmap_16( fbBase16,
+						m_SelMinoPositions[ bNewSelection ][ y ].wXPos,
+						m_SelMinoPositions[ bNewSelection ][ y ].wYPos,
+						iMinoBitmap,
+						16  );
+	}
+}
+
+void render_Menu_Static( UINT16* fbBase16 )
+{
+	UINT8 x;
+	UINT16 y;
+
+
+	for( x = 0; x < 40 ; x++ )
+		for( y = m_MenuMinos[ x ].wYPos; y <= (400  - 16 ); y += 16  )
+			draw_bitmap_16( fbBase16,
+							m_MenuMinos[ x ].wXPos, y,
+							iMinoBitmap,
+							16  );
+
+	render_String( (UINT8*)fbBase16, "TETRIS",
+				   296 , 96  );
+
+
+	plot_v_line( (UINT8*)fbBase16,
+				 79 ,
+				 150 ,
+				 150  + 40  );
+	plot_h_line( (UINT32*)fbBase16,
+				 79 ,
+				 79  + 162 ,
+				 150  );
+	plot_v_line( (UINT8*)fbBase16,
+				 79  + 162 ,
+				 150 ,
+				 150  + 40  );
+	plot_h_line( (UINT32*)fbBase16,
+				 79 ,
+				 79  + 162 ,
+				 150  + 40  );
+
+	render_String( (UINT8*)fbBase16, "1-Player",
+				   79  + ((162  >> 1) - 33) + 1 , 150  + ((40  >> 1) - 4)  );
+
+
+	plot_v_line( (UINT8*)fbBase16,
+				 399 ,
+				 150 ,
+				 150  + 40  );
+	plot_h_line( (UINT32*)fbBase16,
+				 399 ,
+				 399  + 162 ,
+				 150  );
+	plot_v_line( (UINT8*)fbBase16,
+				 399  + 162 ,
+				 150 ,
+				 150  + 40  );
+	plot_h_line( (UINT32*)fbBase16,
+				 399 ,
+				 399  + 162 ,
+				 150  + 40  );
+
+	render_String( (UINT8*)fbBase16,"2-Player",
+				   399  + ((162  >> 1) - 33) + 1 , 150  + ((40  >> 1) - 4)  );
+
+
+	plot_v_line( (UINT8*)fbBase16,
+				 239 ,
+				 150  + 50 ,
+				 150  + 50  + 40  );
+	plot_h_line( (UINT32*)fbBase16,
+				 239 ,
+				 239  + 162 ,
+				 150  + 50  );
+	plot_v_line( (UINT8*)fbBase16,
+				 239  + 162 ,
+				 150  + 50 ,
+				 150  + 50  + 40  );
+	plot_h_line( (UINT32*)fbBase16,
+				 239 ,
+				 239  + 162 ,
+				 150  + 50  + 40  );
+
+	render_String( (UINT8*)fbBase16,"Quit",
+				   239  + ((162  >> 1) - 17) + 1 , 150  + 50  + ((40  >> 1) - 4)  );
 }

@@ -1,3 +1,10 @@
+/*
+	Name: psg.c
+	Purpose: Contains function implementations for dealing
+			 with the atari psg sound chip.
+	Written by: James Cote
+*/
+
 /* Includes */
 #include "psg.h"
 #include <osbind.h>
@@ -39,22 +46,37 @@ bool isValidRegister( int reg );
 UINT8 combineMasks( UINT8 bLHS, UINT8 bRHS, bool bAND );
 void write_psg( int reg, UINT8 val );
 UINT8 read_psg( int reg );
+int set_ipl( int mask );
 
 /* Constant pointers to the PSG */
 UINT8* const cpRegSelect = 0xFFFF8800;
 UINT8* const cpWriteReg = 0xFFFF8802;
+bool bSoundOff = true;
+
+/* Defines */
+#define VBL_MASK 6
 						
 /* write a value (0-255) into the specified register */						
 void write_psg( int reg, UINT8 val )
 {
 	long old_ssp;
+	int old_ipl;
 	
-	if( isValidRegister( reg ) )
+	if( !bSoundOff && isValidRegister( reg ) )
 	{
-		old_ssp = Super(0);
+		old_ssp = Super(1);
+		if( old_ssp == USER_MODE )
+			old_ssp = Super( 0 );
+			
+		old_ipl = set_ipl( VBL_MASK );
+			
 		*cpRegSelect = reg;
 		*cpWriteReg = val;
-		Super(old_ssp);
+		
+		set_ipl( old_ipl );
+		
+		if( old_ssp != SUPER_MODE )
+			Super(old_ssp);
 	}
 }
 
@@ -62,15 +84,25 @@ void write_psg( int reg, UINT8 val )
 UINT8 read_psg( int reg )
 {
 	long old_ssp;
+	int old_ipl;
 	UINT8 iReadValue = 0;
 	UINT8* const cpReadReg = cpRegSelect;
 	
-	if( isValidRegister( reg ) )
+	if( !bSoundOff && isValidRegister( reg ) )
 	{
-		old_ssp = Super(0);
+		old_ssp = Super(1);
+		if( old_ssp == USER_MODE )
+			old_ssp = Super( 0 );
+			
+		old_ipl = set_ipl( VBL_MASK );
+		
 		*cpRegSelect = reg;
 		iReadValue = *cpReadReg;
-		Super( old_ssp );
+		
+		set_ipl( old_ipl );
+		
+		if( old_ssp != SUPER_MODE )
+			Super(old_ssp);
 	}
 	
 	return iReadValue;
@@ -144,12 +176,26 @@ void enable_channel( int iChannel, bool bTone_On, bool bNoise_On )
 	}
 }
 
+/*
+	Turn on the sound.
+*/
+void start_sound( )
+{
+	bSoundOff = false;
+}
+
+/* 
+	Turns off all channels and sets their volumes to
+	0.
+*/
 void stop_sound( )
 {
 	UINT8 bRegisterValue = read_psg( PORT_MIXER_REG );
 	UINT8 i = CHANNEL_A;
 	
 	write_psg( PORT_MIXER_REG, (bRegisterValue | STOP_SOUND_MASK) );
+	
+	bSoundOff = true;
 	
 	for( i; i < MAX_CHANNELS; i++ )
 		set_volume( i, 0 );

@@ -1,3 +1,7 @@
+
+tetris: mod_asm.o vbl_asm.o msk_asm.o kbd_asm.o rend_asm.o tet_main.o model.o renderer.o tvnt_hnd.o input.o raster.o music.o sfx.o psg.o 
+	cc68x -g tet_main.o vbl_asm.o msk_asm.o kbd_asm.o model.o renderer.o rend_asm.o tvnt_hnd.o input.o raster.o mod_asm.o music.o sfx.o psg.o -o tetris
+
 tst_rast: tst_rast.o raster.o 
 	cc68x -g tst_rast.o raster.o -o tst_rast
 
@@ -7,8 +11,8 @@ tst_mod: tst_mod.o model.o mod_asm.o
 tst_rend: tst_rend.o renderer.o rend_asm.o raster.o model.o mod_asm.o
 	cc68x -g tst_rend.o renderer.o rend_asm.o raster.o model.o mod_asm.o -o tst_rend
 	
-tst_inp: tst_inp.o
-	cc68x -g tst_inp.o -o tst_inpt
+tst_inp: tst_inp.o mod_asm.o msk_asm.o kbd_asm.o rend_asm.o model.o renderer.o tvnt_hnd.o input.o raster.o music.o sfx.o psg.o 
+	cc68x -g  tst_inp.o mod_asm.o msk_asm.o kbd_asm.o rend_asm.o model.o renderer.o tvnt_hnd.o input.o raster.o music.o sfx.o psg.o -o tst_inpt
 
 tst_psg: tst_psg.o music.o psg.o input.o sfx.o
 	cc68x -g tst_psg.o music.o psg.o input.o sfx.o -o tst_psg
@@ -24,9 +28,6 @@ tst_mod.o: tst_mod.c model.h
 
 tst_psg.o: tst_psg.c music.h psg.h renderer.h input.h
 	cc68x -g -c tst_psg.c
-	
-tetris: tet_main.o model.o renderer.o rend_asm.o tvnt_hnd.o input.o raster.o mod_asm.o music.o sfx.o psg.o
-	cc68x -g tet_main.o model.o renderer.o rend_asm.o tvnt_hnd.o input.o raster.o mod_asm.o music.o sfx.o psg.o -o tetris
 	
 tet_main.o: tet_main.c
 	cc68x -g -c tet_main.c
@@ -48,6 +49,15 @@ psg.o: psg.c psg.h
 
 mod_asm.o: mod_asm.s
 	gen -D -L2 mod_asm.s
+	
+msk_asm.o: msk_asm.s
+	gen -D -L2 msk_asm.s
+
+vbl_asm.o: vbl_asm.s
+	gen -D -L2 vbl_asm.s
+	
+kbd_asm.o: kbd_asm.s
+	gen -D -L2 kbd_asm.s	
 
 tst_rast.o: tst_rast.c raster.h
 	cc68x -g -c tst_rast.c
@@ -89,4 +99,4 @@ psg_all:
 	make tst_psg
 	
 clean:
-	$(RM) -f tst_rast tst_rend tst_inp tst_mod tetris *.o
+	$(RM) -f tst_rast tst_rend tst_inpt tst_mod tst_psg tetris *.o

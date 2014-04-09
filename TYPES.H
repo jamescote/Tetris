@@ -15,4 +15,9 @@ typedef UINT8 bool;
 #define true 1
 #define false 0
 
+/* ISR Defines */
+typedef void (*Vector)();
+#define USER_MODE 	0
+#define SUPER_MODE 	-1
+
 #endif

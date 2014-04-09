@@ -1,11 +1,17 @@
+/*
+	Name: tst_psg.c
+	Purpose: Contains the testing functionality for 
+			 sound and music in the game.
+	Written by: James Cote
+*/
 /* Includes */
+#include "types.h"
 #include "input.h"
 #include "psg.h"
 #include "music.h"
 #include "snd_cnst.h"
 #include "sfx.h"
 #include "songs.c"
-#include "types.h"
 #include <osbind.h>
 
 #define VOLUME_UP		ROTATE_RIGHT
